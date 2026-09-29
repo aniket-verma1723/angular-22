@@ -1,0 +1,9 @@
+@if (source(); as source) {
+  @if (!failed()) {
+    <img [ngSrc]="source" [alt]="'Avatar of ' + name()" width="48" height="48" (error)="markFailed()">
+  } @else {
+    <span class="fallback" role="img" [attr.aria-label]="'Avatar unavailable for ' + name()">—</span>
+  }
+} @else {
+  <span class="fallback" role="img" [attr.aria-label]="'No avatar for ' + name()">—</span>
+}

@@ -1,0 +1,13 @@
+:host { display: block; min-width: 0; max-width: 100%; }
+mat-grid-list, mat-tree, mat-tree-node, mat-expansion-panel { min-width: 0; max-width: 100%; }
+mat-grid-tile { background: var(--mat-sys-surface-container); border-radius: .5rem; }
+.tile { box-sizing: border-box; min-width: 0; max-width: 100%; padding: 1.25rem; text-align: center; overflow-wrap: anywhere; }
+mat-tree { margin: 1rem 0; background: transparent; }
+mat-tree-node { box-sizing: border-box; gap: .5rem; }
+mat-tree-node span { min-width: 0; overflow-wrap: anywhere; }
+mat-tree-node button { flex-shrink: 0; }
+mat-divider { margin: 1.25rem 0; }
+mat-progress-bar { max-width: 100%; }
+mat-progress-spinner { margin: .75rem 0; }
+.controls { display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
+.notice { border-inline-start: .25rem solid var(--mat-sys-primary); padding: .75rem; background: var(--mat-sys-surface-container); }

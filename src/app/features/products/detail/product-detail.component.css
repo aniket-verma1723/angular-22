@@ -1,0 +1,18 @@
+:host { display: block; }
+header { margin: 1.5rem 0 2rem; }
+h1 { margin: .4rem 0; font-size: clamp(2rem, 4vw, 3rem); }
+.detail-grid { display: grid; grid-template-columns: 1.1fr 1fr; align-items: start; gap: 2rem; }
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.main-image { grid-column: 1 / -1; }
+mat-card-content { padding: 1.5rem; }
+.product-title { margin: .75rem 0; font-size: clamp(1.5rem, 3vw, 2.25rem); overflow-wrap: anywhere; }
+.price { font-size: 2rem; font-weight: 650; }
+.description { line-height: 1.7; }
+dl div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; padding: .75rem 0; border-bottom: 1px solid var(--mat-sys-outline-variant); }
+dt { color: var(--mat-sys-on-surface-variant); }
+dd { margin: 0; font-weight: 600; }
+.learning-note { margin-top: 1.5rem; font-size: .85rem; }
+.reviews { margin-top: 2.5rem; }
+.reviews mat-card { margin-bottom: 1rem; }
+.reviews h3 { margin-top: 0; }
+@media (max-width: 799px) { .detail-grid { grid-template-columns: minmax(0, 1fr); gap: 1rem; } }

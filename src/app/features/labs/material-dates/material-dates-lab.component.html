@@ -1,0 +1,125 @@
+<header>
+  <a matButton routerLink="/labs">All labs</a>
+  <h1 tabindex="-1">Material dates and time lab</h1>
+  <p>Throwaway scratch lab: no appointments, persistence, backend requests or unsaved-settings guard.
+    Leaving this lab discards both independent fixtures.</p>
+</header>
+
+<section aria-labelledby="dates-concept">
+  <h2 id="dates-concept">Concept</h2>
+  <p>Compare a Signal Forms single date with a typed Reactive Forms range/time draft.
+    They do not synchronize. A component-scoped NativeDateAdapter uses the fixed display locale
+    <strong>en-GB</strong> for all three Material controls.</p>
+  <p id="dates-parser-note"><strong>Parser caveat:</strong> NativeDateAdapter uses permissive JavaScript
+    Date.parse for typed dates, not a strict en-GB day/month/year parser. Ambiguous numeric text may
+    be misinterpreted or rejected; even a displayed date is not guaranteed to parse back identically.
+    Prefer the calendar. The native time parser is permissive too, not a strict HH:mm validator.</p>
+</section>
+
+<div class="fixtures">
+  <mat-card appearance="outlined" aria-labelledby="single-title">
+    <mat-card-content>
+      <h2 id="single-title">Fixture A · Signal Forms single date</h2>
+      <p>Optional calendar date. Allowed days: 10–25 September 2026, inclusive.</p>
+      <app-material-single-date-control [formField]="singleDate" [startAt]="calendarStart" />
+      <div class="actions">
+        <button matButton="outlined" type="button" (click)="fillSingle()" [disabled]="singleDate().disabled()">Fill single sample</button>
+        <button matButton="outlined" type="button" (click)="resetSingle()">Reset single date</button>
+        <button matButton="outlined" type="button" (click)="toggleSingle()">
+          {{ singleDate().disabled() ? 'Enable single date' : 'Disable single date' }}
+        </button>
+      </div>
+      <h3>Observation · single date</h3>
+      <dl data-single-observation aria-live="polite">
+        <dt>Calendar data (YYYY-MM-DD)</dt><dd data-single-value>{{ singleText() }}</dd>
+        <dt>Adapter display (en-GB)</dt><dd>{{ singleDisplay() }}</dd>
+        <dt>Field state</dt><dd>Invalid: {{ singleDate().invalid() }} · Disabled: {{ singleDate().disabled() }} · Dirty: {{ singleDate().dirty() }} · Touched: {{ singleDate().touched() }}</dd>
+      </dl>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" aria-labelledby="draft-title">
+    <mat-card-content>
+      <h2 id="draft-title">Fixture B · typed Reactive range and time</h2>
+      <p>Independent optional values. Empty and partial ranges are allowed in this scratch draft;
+        when both dates exist, the start must not follow the end.</p>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Calendar date range (Reactive Forms)</mat-label>
+        <mat-date-range-input [rangePicker]="rangePicker" [min]="minDate" [max]="maxDate"
+          aria-describedby="dates-parser-note">
+          <input matStartDate id="material-range-start" [formControl]="draft.controls.start"
+            aria-label="Range start date" placeholder="Start date" (dateInput)="revalidateRange()">
+          <input matEndDate id="material-range-end" [formControl]="draft.controls.end"
+            aria-label="Range end date" placeholder="End date" (dateInput)="revalidateRange()">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matSuffix [for]="rangePicker" aria-label="Open date-range calendar" />
+        <mat-date-range-picker #rangePicker [startAt]="calendarStart" />
+        <mat-hint>10–25 September 2026 inclusive. Select a start, then an end.</mat-hint>
+        <mat-error>{{ draftState().rangeError }}</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Wall-clock time (Reactive Forms)</mat-label>
+        <input matInput id="material-time" [matTimepicker]="timePicker" [formControl]="draft.controls.time"
+          [matTimepickerMin]="minTime" [matTimepickerMax]="maxTime"
+          [matTimepickerOpenOnClick]="false" aria-describedby="time-semantics">
+        <mat-timepicker-toggle matSuffix [for]="timePicker" aria-label="Open wall-clock time options" />
+        <mat-timepicker #timePicker interval="30m" aria-label="Wall-clock time options" />
+        <mat-hint>09:00–17:00 inclusive. Arrow Down opens options; Escape closes.</mat-hint>
+        <mat-error>{{ draftState().timeError }}</mat-error>
+      </mat-form-field>
+      <div class="actions">
+        <button matButton="outlined" type="button" (click)="fillDraft()" [disabled]="draftState().disabled">Fill range/time sample</button>
+        <button matButton="outlined" type="button" (click)="resetDraft()">Reset range/time</button>
+        <button matButton="outlined" type="button" (click)="toggleDraft()">
+          {{ draftState().disabled ? 'Enable range/time' : 'Disable range/time' }}
+        </button>
+      </div>
+      <h3>Observation · range and time</h3>
+      <dl data-draft-observation aria-live="polite">
+        <dt>Start (YYYY-MM-DD)</dt><dd data-start-value>{{ draftState().start }}</dd>
+        <dt>End (YYYY-MM-DD)</dt><dd data-end-value>{{ draftState().end }}</dd>
+        <dt>Time only (HH:mm)</dt><dd data-time-value>{{ draftState().time }}</dd>
+        <dt>Draft state</dt><dd>Status: {{ draftState().status }} · Dirty: {{ draftState().dirty }} · Touched: {{ draftState().touched }}</dd>
+      </dl>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<section aria-labelledby="dates-try">
+  <h2 id="dates-try">Try</h2>
+  <ol>
+    <li>Fill each sample, then open a calendar. Days outside the fixed bounds are disabled.</li>
+    <li>Type “not-a-date”, then blur. Clear the text or reset to recover to null.</li>
+    <li>Type “September 20, 2026” as start and “September 15, 2026” as end to inspect reversed-range validation.</li>
+    <li>Type 08:30 or 17:30 in time and blur. Compare those errors with the bounded 30-minute options.</li>
+    <li>Use Arrow Down, arrow keys and Enter in time; Escape closes without selection.
+      In a calendar use Alt+Arrow Down to open, arrow keys to move, Enter to select, Escape to close.</li>
+    <li>Disable a fixture: values remain but controls and toggles stop accepting input.
+      Reset re-enables it, clears values and restores pristine/untouched state.</li>
+  </ol>
+  <h2>Mechanism</h2>
+  <p>Material's datepicker is an existing ControlValueAccessor (CVA), and [formField] supports CVAs.
+    This installed version can skip clearing invalid text on a null-to-null reset and miss a
+    same-null parse notification in the direct bridge. Fixture A therefore uses a small CVA-only
+    wrapper: an internal Reactive FormControl forwards Material validation events, and the public
+    Material value setter clears reset text. It does not also implement a Signal Forms control
+    interface; the Signal model remains the fixture owner. Signal minDate/maxDate rules forward
+    bounds metadata through the wrapper, which normalizes accepted values to local calendar days.
+    The independent range parts and
+    timepicker use nullable FormControl&lt;Date | null&gt; controls; Material supplies their parse,
+    bounds and range-order validators. Changing either range endpoint revalidates both controls.
+    Reset also clears raw range text through Material's public value setters. The time CVA resets
+    its value signal but skips formatting while focused, so reset explicitly clears its native text too.
+    Reactive events feed a read-only observation signal.</p>
+  <h2>Mistake</h2>
+  <p id="time-semantics">A calendar day is not a UTC instant. These diagnostics use local date getters,
+    not toISOString() or UTC slicing. A timepicker Date is only a carrier for local hours/minutes here;
+    its calendar part is ignored. No timezone, date/time combination or real appointment is inferred.
+    Native parsing can use today's carrier date, and calendars retain Material's real today highlight;
+    neither determines this lab's fixed samples, bounds or initial calendar month.</p>
+  <h2>Revision</h2>
+  <p>Use one owner per fixture; do not mirror the same draft between form systems. Reset is not a save.
+    An empty value is null, while an unparseable input has a validation error even when its model is null
+    (the time CVA can retain an invalid Date). A 30-minute option interval does not enforce typed-time
+    granularity. A production workflow would need an explicit strict parser and timezone/domain policy.</p>
+</section>

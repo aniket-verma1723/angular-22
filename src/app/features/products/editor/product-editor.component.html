@@ -1,0 +1,64 @@
+<a mat-button routerLink="/products" [queryParams]="backParams()">Back to products</a>
+<header><p class="eyebrow muted">M02 / P05 · Signal Forms</p><h1 tabindex="-1">{{ isCreate ? 'Create product' : 'Edit product' }}</h1>
+  <p>{{ mode === 'mock' ? 'Local mock · session changes' : 'Remote demo · writes are simulated, not saved' }}</p>
+  <p class="muted">Practice admin · {{ session.user()?.username }}. The selected demo-admin role controls only local navigation and actions, never server authorization.</p></header>
+@if (session.user()?.role !== 'demo-admin') { <p role="alert">Your demo-admin session ended. The draft is retained, but new writes are blocked.</p><a mat-button routerLink="/login">Manage demo session</a> }
+@if (navigationMessage()) { <p role="alert">{{ navigationMessage() }}</p> }
+@let state = loadState();
+@switch (state.status) {
+  @case ('loading') { <p role="status">Loading editor…</p><mat-progress-bar mode="indeterminate" aria-label="Loading editor" /> }
+  @case ('error') { <app-product-error [error]="state.error" (retry)="retryLoad()" /> }
+  @case ('success') {
+    @let categoryState = categories();
+    @if (categoryState.status === 'loading') { <p role="status">Loading category choices…</p> }
+    @if (categoryState.status === 'error') { <app-product-error [error]="categoryState.error" (retry)="retryCategories()" /> }
+    @if (categoryState.status === 'success' && !categoryState.value.length) { <p>No category choices returned. Existing categories can be kept; new products need a category.</p> }
+    @if (!deleteResult()) { @if (saveResult(); as result) {
+      <section class="result" role="status" aria-label="Save result"><h2>{{ result.persistence === 'session' ? 'Saved in this mock session' : 'Simulated save only' }}</h2>
+        <p>{{ result.value.title }} · ID {{ result.value.id }} · {{ result.value.price | currency:'USD' }} · Stock {{ result.value.stock }}</p>
+        <p>This is the last successful response, not a promise that later draft edits are saved.</p>
+        <p>{{ result.persistence === 'session' ? 'Reload resets mock changes. Cart snapshots are unchanged.' : 'The remote server did not persist this change. A newly returned ID may not be fetchable. Use mock mode for a complete CRUD journey.' }}</p>
+        @if (result.persistence === 'session') {
+          <a mat-button [routerLink]="['/products', result.value.id]" [queryParams]="backParams()">View saved product</a>
+          @if (isCreate) { <a mat-button [routerLink]="['/products', result.value.id, 'edit']" [queryParams]="backParams()">Edit saved product</a> }
+        }
+        @if (isCreate) { <button mat-button type="button" (click)="startAnother()">Create another product</button> }
+      </section>
+    } }
+    @if (deleteResult(); as result) { <section class="result" role="status"><h2>{{ result.persistence === 'session' ? 'Deleted from this mock session' : 'Simulated deletion only' }}</h2>
+      <p>Product {{ result.value.id }}. {{ result.persistence === 'session' ? 'The record is now absent until mock reset or reload.' : 'The original remote product still exists.' }} Cart snapshots are unchanged.</p></section> }
+    @if (mutationError(); as error) { <div role="alert"><h2>Product operation failed</h2><p>{{ error.message }}</p>
+      <p>Your draft is retained. Check the result before retrying: a timeout or malformed response does not prove that a write was rolled back.</p>
+      @if (error.retryAfterSeconds !== null) { <p>Service retry guidance: wait {{ error.retryAfterSeconds }} seconds.</p> }</div> }
+    <form novalidate (submit)="save($event)" [attr.aria-busy]="busy()" aria-label="Product editor">
+      <mat-card appearance="outlined"><mat-card-content>
+        <div class="fields">
+          <mat-form-field appearance="outline" class="wide"><mat-label>Title</mat-label><input matInput [formField]="productForm.title" />
+            <mat-error>{{ productForm.title().errors()[0]?.message ?? 'Enter a valid title.' }}</mat-error></mat-form-field>
+          <mat-form-field appearance="outline" class="wide"><mat-label>Description</mat-label><textarea matInput rows="4" [formField]="productForm.description"></textarea>
+            <mat-error>{{ productForm.description().errors()[0]?.message ?? 'Enter a valid description.' }}</mat-error></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Price (USD)</mat-label><input matInput type="number" step="0.01" [formField]="productForm.price" />
+            <mat-hint>USD 0.01–1,000,000 · at most two decimals</mat-hint><mat-error>{{ productForm.price().errors()[0]?.message ?? 'Enter a valid price.' }}</mat-error></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Stock</mat-label><input matInput type="number" step="1" [formField]="productForm.stock" />
+            <mat-hint>Whole number, 0–1,000,000</mat-hint><mat-error>{{ productForm.stock().errors()[0]?.message ?? 'Enter valid stock.' }}</mat-error></mat-form-field>
+          <mat-form-field appearance="outline" class="wide"><mat-label>Category</mat-label><mat-select [formField]="productForm.category">
+            <mat-option value="">Choose a category</mat-option>
+            @if (missingCategory()) { <mat-option [value]="originalCategory()">{{ originalCategory() }} (existing)</mat-option> }
+            @for (category of choices(); track category.slug) { <mat-option [value]="category.slug">{{ category.name }}</mat-option> }
+          </mat-select><mat-error>{{ productForm.category().errors()[0]?.message ?? 'Choose a category.' }}</mat-error></mat-form-field>
+        </div>
+        <div class="actions">
+          <button mat-flat-button type="submit" [disabled]="busy() || session.user()?.role !== 'demo-admin' || confirming() || completed() || productForm().invalid() || productForm().pending()">{{ productForm().submitting() ? 'Saving…' : 'Save product' }}</button>
+          @if (productForm().invalid() && !completed()) { <button mat-button type="button" [disabled]="busy() || confirming()" (click)="checkFields()">Review field errors</button> }
+          <button mat-button type="button" [disabled]="busy() || completed()" (click)="resetDraft()">Reset draft</button>
+          @if (!isCreate) { <button mat-stroked-button type="button" [disabled]="busy() || session.user()?.role !== 'demo-admin' || completed()" (click)="remove()">{{ deleting() ? 'Deleting…' : 'Delete product' }}</button> }
+        </div>
+        @if (busy()) { <p role="status">{{ deleting() ? 'Deleting product…' : 'Saving product…' }} Please wait before leaving.</p> }
+        <p class="muted">{{ productForm().dirty() ? 'Unsaved changes' : 'No unsaved field changes' }} · {{ productForm().pending() ? 'Validation pending' : productForm().invalid() ? 'Review the fields before saving' : 'Fields valid' }}</p>
+      </mat-card-content></mat-card>
+    </form>
+  }
+  @default never(state);
+}
+<aside class="muted"><h2>Follow the state</h2><p>One model signal → schema → FormField bindings → submit() → validated HTTP result.
+  Invalid and pending validation block writes. Save/delete never auto-retry. Route navigation waits for active writes; forced browser closure can still interrupt the client without rolling back the server.</p></aside>

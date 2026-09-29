@@ -1,0 +1,51 @@
+<app-material-lesson [lesson]="lesson">
+  <mat-grid-list [cols]="columns()" rowHeight="8rem" gutterSize="12px" aria-label="Reading summary">
+    <mat-grid-tile>
+      <div class="tile"><strong>Chosen notebook</strong><p data-selected-node>{{ selected() }}</p></div>
+    </mat-grid-tile>
+    <mat-grid-tile>
+      <div class="tile"><strong [matBadge]="progress() / 25" matBadgeDescription="Completed simulated readings" matBadgeOverlap="false">Readings</strong>
+        <p data-reading-count>Completed readings: {{ progress() / 25 }} of 4</p></div>
+    </mat-grid-tile>
+  </mat-grid-list>
+  <mat-tree [dataSource]="nodes" [childrenAccessor]="childrenAccessor" [expansionKey]="expansionKey" [trackBy]="trackNode" aria-label="Fictional notebooks">
+    <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding [matTreeNodePaddingIndent]="16"
+      [isDisabled]="node.disabled ?? false" [attr.aria-disabled]="node.disabled ?? false"
+      [cdkTreeNodeTypeaheadLabel]="node.label" (activation)="selectNode(node)">
+      <span>{{ node.label }}</span>
+      <button mat-button type="button" [disabled]="node.disabled ?? false" [attr.aria-label]="'Choose ' + node.label" (click)="selectNode(node)">Choose</button>
+    </mat-tree-node>
+    <mat-tree-node *matTreeNodeDef="let node; when: hasChildren" matTreeNodePadding [isExpandable]="true"
+      [cdkTreeNodeTypeaheadLabel]="node.label" #branch="matTreeNode">
+      <button mat-icon-button type="button" matTreeNodeToggle [attr.aria-label]="(branch.isExpanded ? 'Collapse ' : 'Expand ') + node.label">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+          <path [attr.d]="branch.isExpanded ? 'M6 9l6 6 6-6' : 'M9 6l6 6-6 6'" fill="none" stroke="currentColor" stroke-width="2" />
+        </svg>
+      </button>
+      <span>{{ node.label }}</span>
+    </mat-tree-node>
+  </mat-tree>
+  <mat-expansion-panel>
+    <mat-expansion-panel-header><mat-panel-title>Reading details</mat-panel-title></mat-expansion-panel-header>
+    <p>Selected: {{ selected() }}. Four fictional readings are needed. Use the buttons to advance, not a timer.</p>
+  </mat-expansion-panel>
+  <mat-divider />
+  <section aria-label="Simulated progress" [attr.aria-busy]="running()">
+    <p data-progress-status>{{ progress() === 0 ? 'Not started' : progress() === 100 ? 'Simulation complete' : 'Simulation in progress' }} · {{ progress() }}%</p>
+    <mat-progress-bar mode="determinate" [value]="progress()" aria-label="Simulated reading completion" />
+    @if (running()) {
+      <mat-progress-spinner mode="determinate" [value]="progress()" diameter="40" aria-label="Simulated reading progress" />
+    }
+  </section>
+  <div class="controls">
+    <button mat-button type="button" (click)="start()" [disabled]="progress() !== 0">Start simulation</button>
+    <button mat-button type="button" (click)="advance()" [disabled]="!running()">Advance one reading</button>
+  </div>
+  <p class="notice" data-important-notice>{{ notice() }}</p>
+  <div class="controls">
+    <button mat-button type="button" (click)="showNotice()">Show important notice</button>
+    <button mat-button type="button" (click)="openSheet()">Choose next step</button>
+    <button mat-button type="button" (click)="reset()">Reset display and feedback</button>
+  </div>
+  <p role="status" data-sheet-result>{{ result() }}</p>
+</app-material-lesson>

@@ -1,0 +1,7 @@
+cdk-virtual-scroll-viewport { display: block; height: 288px; width: 100%;
+  outline-offset: 4px; border: 1px solid var(--mat-sys-outline, GrayText); box-sizing: content-box;
+  background: var(--mat-sys-surface, Canvas); }
+.person-row { box-sizing: border-box; border-bottom: 1px solid var(--mat-sys-outline-variant, GrayText); }
+.person-row label { display: flex; align-items: center; gap: .75rem; height: 100%; padding-inline: .75rem; cursor: pointer; }
+.person-row input { width: 20px; height: 20px; flex: none; }
+.person-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

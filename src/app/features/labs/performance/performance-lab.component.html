@@ -1,0 +1,187 @@
+<header>
+  <p>P11 · Quality and performance</p>
+  <h1 tabindex="-1">Performance lab</h1>
+  <a routerLink="/labs">All labs</a>
+  <p>Local fictional fixtures only: no API requests or browser storage. Settings, advanced
+    resources/forms and SSR remain separate work. P12 makes the application zoneless; Zone.js remains test-only.</p>
+</header>
+
+<section aria-labelledby="defer-heading">
+  <h2 id="defer-heading">Deferred trigger workbench</h2>
+  <h3>Concept</h3>
+  <p>Keep the lesson and controls available immediately; defer the optional summary component.
+    Only one trigger experiment is mounted at a time.</p>
+  <h3>Try it</h3>
+  <p>Predict when code downloads and when an instance appears. Select a trigger, observe the
+    summary, then inspect lifetimes. Unmount and mount to create a fresh block.</p>
+  <div class="controls">
+    <label for="performance-trigger">Deferred trigger</label>
+    <select id="performance-trigger" #triggerSelect [value]="trigger()"
+      [attr.aria-invalid]="selectionError() ? 'true' : null"
+      aria-describedby="trigger-hint trigger-error" (change)="chooseTrigger(triggerSelect.value)">
+      @for (choice of triggers; track choice.id) {
+        <option [value]="choice.id">{{ choice.label }}</option>
+      }
+    </select>
+    <button type="button" aria-controls="trigger-workbench" [attr.aria-expanded]="mounted()"
+      (click)="toggleMount()">{{ mounted() ? 'Unmount experiment' : 'Mount experiment' }}</button>
+  </div>
+  <p id="trigger-hint">{{ hint() }}</p>
+  <p id="trigger-error" role="alert">{{ selectionError() }}</p>
+
+  <div id="trigger-workbench" class="workbench">
+    @if (mounted()) {
+      @switch (trigger()) {
+        @case ('interaction') {
+          <button type="button" #interactionTrigger>Load interaction summary</button>
+          @defer (on interaction(interactionTrigger); prefetch on hover(interactionTrigger)) {
+            <app-deferred-summary />
+          } @placeholder {
+            <p role="status" data-defer-state="placeholder">Interaction summary waiting.</p>
+          } @loading (after 100ms; minimum 200ms) {
+            <p role="status" data-defer-state="loading">Loading summary code…</p>
+          } @error {
+            <p role="alert" data-defer-state="error">Summary code unavailable. Reload the page to try again.</p>
+          }
+        }
+        @case ('viewport') {
+          @defer (on viewport) {
+            <app-deferred-summary />
+          } @placeholder {
+            <p role="status" data-defer-state="placeholder">Viewport summary waiting to enter view.</p>
+          } @loading (after 100ms; minimum 200ms) {
+            <p role="status" data-defer-state="loading">Loading summary code…</p>
+          } @error {
+            <p role="alert" data-defer-state="error">Summary code unavailable. Reload the page to try again.</p>
+          }
+        }
+        @case ('when') {
+          <button type="button" [attr.aria-pressed]="gate()" (click)="toggleGate()">
+            {{ gate() ? 'Close signal gate' : 'Open signal gate' }}
+          </button>
+          <p data-gate-state>Signal gate: {{ gate() ? 'open' : 'closed' }}</p>
+          @defer (when gate()) {
+            <app-deferred-summary />
+          } @placeholder {
+            <p role="status" data-defer-state="placeholder">Signal summary waiting for the gate.</p>
+          } @loading (after 100ms; minimum 200ms) {
+            <p role="status" data-defer-state="loading">Loading summary code…</p>
+          } @error {
+            <p role="alert" data-defer-state="error">Summary code unavailable. Reload the page to try again.</p>
+          }
+        }
+        @case ('idle') {
+          @defer (on idle) {
+            <app-deferred-summary />
+          } @placeholder {
+            <p role="status" data-defer-state="placeholder">Idle summary waiting for browser idle.</p>
+          } @loading (after 100ms; minimum 200ms) {
+            <p role="status" data-defer-state="loading">Loading summary code…</p>
+          } @error {
+            <p role="alert" data-defer-state="error">Summary code unavailable. Reload the page to try again.</p>
+          }
+        }
+        @case ('timer') {
+          @defer (on timer(1500ms)) {
+            <app-deferred-summary />
+          } @placeholder {
+            <p role="status" data-defer-state="placeholder">Timer summary waiting for 1500 ms.</p>
+          } @loading (after 100ms; minimum 200ms) {
+            <p role="status" data-defer-state="loading">Loading summary code…</p>
+          } @error {
+            <p role="alert" data-defer-state="error">Summary code unavailable. Reload the page to try again.</p>
+          }
+        }
+        @case ('hover') {
+          <button type="button" #hoverTrigger>Hover or focus to load summary</button>
+          @defer (on hover(hoverTrigger)) {
+            <app-deferred-summary />
+          } @placeholder {
+            <p role="status" data-defer-state="placeholder">Hover summary waiting for hover or focus.</p>
+          } @loading (after 100ms; minimum 200ms) {
+            <p role="status" data-defer-state="loading">Loading summary code…</p>
+          } @error {
+            <p role="alert" data-defer-state="error">Summary code unavailable. Reload the page to try again.</p>
+          }
+        }
+        @case ('immediate') {
+          @defer (on immediate) {
+            <app-deferred-summary />
+          } @placeholder {
+            <p role="status" data-defer-state="placeholder">Immediate summary waiting for initial rendering.</p>
+          } @loading (after 100ms; minimum 200ms) {
+            <p role="status" data-defer-state="loading">Loading summary code…</p>
+          } @error {
+            <p role="alert" data-defer-state="error">Summary code unavailable. Reload the page to try again.</p>
+          }
+        }
+      }
+    } @else {
+      <p role="status">Experiment unmounted. Mount to reset its block and signal gate.</p>
+    }
+  </div>
+
+  <h3>What Angular does</h3>
+  <p>The standalone summary appears only inside defer blocks. The compiler can split its import;
+    prefetch fetches code without creating the component. Loading appears after 100 ms and, if
+    shown, remains for at least 200 ms. Fast loads may skip it; no artificial download delay is added.</p>
+  <p>The workbench reserves representative desktop/narrow summary space to reduce expansion.
+    Enlarged text can still grow it; reserved space is not a guarantee of zero layout shift.</p>
+  <h3>Common mistake</h3>
+  <p>All seven blocks deliberately reuse one payload. Once loaded, its JavaScript module is cached:
+    later triggers can create new instances without a new download. Unmounting does not clear that
+    cache. A class query or eager use in this entry would defeat deferral eligibility.</p>
+  <h3>Revision question</h3>
+  <p>Why can prefetch download code with zero instances? Why does closing a completed signal gate
+    leave the summary visible, while unmounting destroys it?</p>
+  <h3>Test observation</h3>
+  <button type="button" (click)="inspect()">Inspect payload lifetimes</button>
+  <p role="status" data-lifetime-observation>Last inspection — created: {{ inspected().created }};
+    destroyed: {{ inspected().destroyed }}; active: {{ inspected().active }}.</p>
+  <p>The counters are local to this lab visit and update only on inspection, not during child
+    rendering. Manual defer tests exercise placeholder, loading, complete and error states;
+    they do not measure download timing or prove production chunk splitting.</p>
+</section>
+
+<section aria-labelledby="route-heading">
+  <h2 id="route-heading">Route lazy loading versus preloading</h2>
+  <h3>Concept</h3>
+  <p>Separate lazy route components move the loading boundary to navigation. Preloading can fetch
+    an opted-in route before navigation without creating its component.</p>
+  <h3>Try it</h3>
+  <p>In a fresh production-like page, visit this lab before either child. Compare the two links in
+    the Network panel, then navigate between them again. No child opens automatically.</p>
+  <nav class="controls" aria-label="Performance route comparison">
+    <a [routerLink]="['./demand']">Load on demand</a>
+    <a [routerLink]="['./preloaded']">Open preload candidate</a>
+  </nav>
+  <router-outlet />
+  <h3>What Angular does</h3>
+  <p>Each child uses its own dynamic import. Only the preloaded child has
+    <code>data: &#123; performancePreload: true &#125;</code>. The application owns the global
+    preloading strategy; metadata alone does nothing. With the containing lab left unpreloaded,
+    these children are discovered only after the lab is visited.</p>
+  <h3>Common mistake</h3>
+  <p>Do not equate preloading with activation or promise a speed gain from these small fixtures.
+    An already cached module can hide both route and defer downloads. HMR can eagerly fetch defer
+    chunks; use production output or disable HMR for trigger observations.</p>
+  <h3>Revision question</h3>
+  <p>What changes if the global strategy ignores the opt-in, preloads everything, or never runs?</p>
+  <h3>Test observation</h3>
+  <p>Local router tests verify lazy child selection and no default child. Production artifact and
+    browser Resource Timing/Performance observations belong to the integration pass. Record cold
+    and repeat visits, transfer sizes and LCP/INP/CLS separately; no global observer runs here.</p>
+</section>
+
+<app-animation-lesson />
+<app-profiling-lesson />
+<app-image-lesson />
+
+<aside aria-labelledby="image-audit-heading">
+  <h2 id="image-audit-heading">Image audit comparison</h2>
+  <p>Inspect existing product images: explicit 400 × 300 dimensions, descriptive alternatives and
+    separate static priority branches. Priority belongs only on genuinely critical imagery.
+    Compare them with this lab's nonpriority local fill image, its positioned aspect-ratio container
+    and named failure fallback. Check the reserved geometry at narrow widths; the fill exercise
+    makes local image requests, not API calls or external image requests.</p>
+</aside>

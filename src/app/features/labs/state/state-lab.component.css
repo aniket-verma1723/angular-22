@@ -1,0 +1,8 @@
+:host { display: block; max-width: 68rem; margin: auto; color: var(--mat-sys-on-surface); }
+section { margin-block: 1.25rem; padding: clamp(.75rem, 3vw, 1.5rem); border: 1px solid var(--mat-sys-outline); border-radius: 1rem; background: var(--mat-sys-surface-container-low); }
+h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); } h3 { font-size: 1rem; margin-bottom: .25rem; }
+p { line-height: 1.6; overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-block: .75rem; }
+label { display: block; margin-bottom: .5rem; }
+button, input, select, a { font: inherit; color: inherit; } button, input, select { min-height: 44px; box-sizing: border-box; max-width: 100%; padding: .5rem .8rem; border: 1px solid currentColor; border-radius: .5rem; background: var(--mat-sys-surface); }
+button { cursor: pointer; } :is(button, input, select, a):focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 3px; }

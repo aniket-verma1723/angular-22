@@ -1,0 +1,68 @@
+<header class="catalogue-heading">
+  <div><p class="eyebrow muted">M02 / P03 · Explore the catalogue</p><h1 tabindex="-1">Products</h1>
+    <p class="muted">Discover the data. Change a filter. Share the URL.</p></div>
+  <span class="mode-label">{{ mode === 'mock' ? 'Local mock · session data' : 'Remote demo · DummyJSON' }}</span>
+</header>
+<a mat-flat-button routerLink="/products/new" [queryParams]="linkParams()">Create product</a>
+<p role="status" aria-atomic="true">{{ cartMessage() }}</p>
+<section class="filters" aria-label="Product filters">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search products</mat-label>
+    <input #searchInput matInput type="search" [value]="searchDraft()" [maxLength]="maxSearchLength"
+      (input)="search(searchInput.value)" aria-describedby="filter-help">
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Category</mat-label>
+    <mat-select [value]="category()" (selectionChange)="selectCategory($event.value)">
+      <mat-option value="">All categories</mat-option>
+      @if (missingCategory()) { <mat-option [value]="category()">{{ category() }}</mat-option> }
+      @for (option of categoryOptions(); track option.slug) { <mat-option [value]="option.slug">{{ option.name }}</mat-option> }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline"><mat-label>Sort by</mat-label>
+    <mat-select [value]="query().sortBy" (selectionChange)="sort($event.value)">
+      <mat-option value="title">Title</mat-option><mat-option value="price">Price</mat-option><mat-option value="rating">Rating</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline"><mat-label>Direction</mat-label>
+    <mat-select [value]="query().order" (selectionChange)="order($event.value)">
+      <mat-option value="asc">Ascending</mat-option><mat-option value="desc">Descending</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <button mat-button type="button" (click)="clearFilters()">Clear filters</button>
+</section>
+<p id="filter-help" class="muted filter-help">Search applies after a short pause. Search and category are alternatives, not combined filters. Demo prices are in USD.</p>
+@if (navigationError()) { <p role="alert">Unable to update the URL. Please try the control again.</p> }
+@let categoryState = categories();
+@if (categoryState.status === 'loading') { <p role="status">Loading categories…</p> }
+@if (categoryState.status === 'error') {
+  <section aria-label="Category loading error"><p>Category choices could not be loaded. You can still search products.</p>
+    <app-product-error [error]="categoryState.error" (retry)="retryCategories()" /></section>
+}
+@let state = products();
+<section aria-label="Product results" [attr.aria-busy]="state.status === 'loading'">
+  @switch (state.status) {
+    @case ('loading') { <p role="status">Loading products…</p><mat-progress-bar mode="indeterminate" aria-label="Loading products" /> }
+    @case ('error') { <app-product-error [error]="state.error" (retry)="retryProducts()" /> }
+    @case ('success') {
+      <p role="status" class="result-count">{{ state.value.total }} products found · {{ state.value.items.length }} on this page</p>
+      <div class="product-grid">
+        @for (product of state.value.items; track product.id; let first = $first) {
+          <app-product-card [product]="product" [queryParams]="linkParams()" [priority]="first"
+            [inCart]="cart.quantityById().get(product.id) ?? 0" [limit]="cart.limitsById().get(product.id) ?? 99"
+            (add)="addToCart($event)" />
+        } @empty {
+          <div class="empty-state"><h2>{{ query().pageIndex > 0 ? 'No products on this page' : 'No products found' }}</h2>
+            <p>Try another search or category.</p>
+            @if (query().pageIndex > 0) { <button mat-stroked-button type="button" (click)="firstPage()">Go to first page</button> }
+            <button mat-button type="button" (click)="clearFilters()">Clear filters</button>
+          </div>
+        }
+      </div>
+      <mat-paginator aria-label="Product pagination" [length]="state.value.total" [pageSize]="query().pageSize"
+        [pageIndex]="query().pageIndex" [pageSizeOptions]="pageSizes" showFirstLastButtons (page)="paginate($event)" />
+    }
+    @default never(state);
+  }
+</section>
+<p class="learning-note muted">Under the hood: URL → validated query → switchMap → HttpClient → parsed response. Cards emit add intent; the session cart owns state. Create or edit a product to explore P05 Signal Forms.</p>

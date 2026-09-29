@@ -1,0 +1,42 @@
+<h1 tabindex="-1">Template-driven preferences comparison</h1>
+<app-forms-lesson concept="A small isolated preference form demonstrates NgForm, named ngModel controls and directive validators."
+  exercise="Submit empty, enter a fictional display label, Save, then Fail response. Retry and Complete success. Reset also clears submitted state."
+  mechanism="NgForm registers each named ngModel control. required, maxlength and pattern directives validate inputs; resetForm restores values and submission metadata."
+  mistake="Do not use a template-driven form for the complex product editor, or attach competing form systems to one control."
+  question="What does NgForm.submitted describe, and why is it different from a successful save?" />
+
+<mat-card appearance="outlined"><mat-card-content>
+  <h2>Local preferences — no persistence or app-setting changes</h2>
+  <form #preferencesForm="ngForm" (ngSubmit)="save(preferencesForm)" [attr.aria-busy]="stage() === 'saving'">
+    <div><label>Display label (fictional)
+      <input #labelInput #label="ngModel" name="label" [(ngModel)]="preferences.label" required maxlength="40" pattern=".*\S.*"
+        [disabled]="stage() === 'saving'" [attr.aria-invalid]="label.invalid" aria-describedby="template-label-error">
+    </label>
+    <p class="error" id="template-label-error">@if (label.invalid && (label.touched || preferencesForm.submitted)) { Enter a non-blank display label of at most 40 characters. }</p></div>
+    <div><label>Density preview
+      <select #density="ngModel" name="density" [(ngModel)]="preferences.density" required pattern="comfortable|compact"
+        [disabled]="stage() === 'saving'" [attr.aria-invalid]="density.invalid" aria-describedby="template-density-error">
+        <option value="comfortable">Comfortable</option><option value="compact">Compact</option>
+      </select>
+    </label>
+    <p class="error" id="template-density-error">@if (density.invalid && (density.touched || preferencesForm.submitted)) { Choose a listed density. }</p></div>
+    <label class="check"><input type="checkbox" name="tips" [(ngModel)]="preferences.tips" [disabled]="stage() === 'saving'"> Show learning tips (preview only)</label>
+    <div class="actions">
+      <button mat-flat-button type="submit" [disabled]="preferencesForm.invalid || preferencesForm.pending || stage() === 'saving' || leave.confirming()">Save local preferences</button>
+      <button mat-button type="button" (click)="review(preferencesForm)" [disabled]="stage() === 'saving'">Review errors</button>
+      <button mat-button type="button" (click)="resetDraft()" [disabled]="stage() === 'saving' || leave.confirming()">Reset draft</button>
+    </div>
+  </form>
+</mat-card-content></mat-card>
+<mat-card appearance="outlined"><mat-card-content>
+  <h2>Controlled local responses</h2>
+  <p role="status">Save stage: {{ stage() }} · Submitted: {{ preferencesForm.submitted }} · Dirty: {{ preferencesForm.dirty }} · Pending: {{ preferencesForm.pending }}</p>
+  <div class="actions">
+    <button mat-button type="button" (click)="completeSave(true)" [disabled]="stage() !== 'saving'">Complete success</button>
+    <button mat-button type="button" (click)="completeSave(false)" [disabled]="stage() !== 'saving'">Fail response</button>
+  </div>
+  @if (stage() === 'failure') { <p role="alert">Local save failed. Preferences draft preserved; retry deliberately.</p> }
+  @if (stage() === 'success') { <p role="status">Local simulation complete. Draft and submitted state cleared; nothing persisted.</p> }
+  <p role="status">{{ leave.message() }}</p>
+  <p>Escaped preview: {{ preferences.label }} · {{ preferences.density }} · Tips: {{ preferences.tips }}</p>
+</mat-card-content></mat-card>

@@ -1,0 +1,37 @@
+<app-component-experiment-card [lesson]="lesson">
+  <div class="controls">
+    <button type="button" (click)="visible.set(!visible())" [attr.aria-expanded]="visible()">
+      {{ visible() ? 'Destroy' : 'Create' }} render probe
+    </button>
+    <button type="button" (click)="changePadding()">Change probe padding</button>
+    <button type="button" (click)="readMeasurements()">Read measurements</button>
+  </div>
+  <p>Requested padding: {{ padding() }} px.</p>
+  @if (visible()) {
+    <app-render-probe [padding]="padding()"><p>Projected measurement content</p></app-render-probe>
+  }
+  @let snapshot = report();
+  @if (snapshot) {
+    <div class="observation" data-measurements>
+      <p>Snapshot only — press Read measurements again to refresh.</p>
+      <ul>
+        <li>afterNextRender reads: <strong data-next>{{ snapshot.reads.next }}</strong></li>
+        <li>afterEveryRender reads: <strong data-every>{{ snapshot.reads.every }}</strong></li>
+        <li>afterRenderEffect reads: <strong data-effect>{{ snapshot.reads.effect }}</strong></li>
+        <li>ResizeObserver callbacks: <strong data-observer>{{ snapshot.reads.observer }}</strong></li>
+        <li>Active observers: <strong data-active-observers>{{ snapshot.activeObservers }}</strong>;
+          supported: {{ snapshot.observerSupported ?? 'not checked yet' }}</li>
+        <li>Effect cleanups: <strong data-cleanups>{{ snapshot.effectCleanups }}</strong></li>
+        <li>Last source: {{ snapshot.lastSource ?? 'none' }};
+          width: <span data-width>{{ snapshot.width ?? 'not measured' }}</span> px;
+          height: {{ snapshot.height ?? 'not measured' }} px.</li>
+      </ul>
+      <p>Most recent lifecycle hooks (up to 16):</p>
+      <ol data-hooks>
+        <!-- The absolute sequence number survives trimming; repeated hook names are not unique. -->
+        @for (entry of snapshot.hooks; track entry.id) { <li>{{ entry.hook }}</li> }
+        @empty { <li>No instance created yet.</li> }
+      </ol>
+    </div>
+  } @else { <p data-unread>No snapshot requested yet.</p> }
+</app-component-experiment-card>

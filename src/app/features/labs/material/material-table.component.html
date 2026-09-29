@@ -1,0 +1,35 @@
+<app-material-lesson [lesson]="lesson">
+  <mat-form-field appearance="outline">
+    <mat-label>Filter local readings</mat-label>
+    <input matInput #filterInput type="text" [maxLength]="filterMaxLength" (input)="applyFilter(filterInput)">
+    <mat-hint>ID, label or minutes; case-insensitive, trimmed, at most {{ filterMaxLength }} characters.</mat-hint>
+  </mat-form-field>
+  <div class="controls">
+    <button mat-button type="button" (click)="clearFilter(filterInput)">Clear table filter</button>
+    <button mat-button type="button" (click)="reset(filterInput)">Reset local table</button>
+  </div>
+  <p role="status" data-table-sort-notice>{{ sortNotice() }}</p>
+  <div class="table-wrapper">
+    <table mat-table [dataSource]="dataSource" [trackBy]="trackReading" matSort
+      matSortActive="id" matSortDirection="asc" (matSortChange)="onSortChange($event)">
+      <caption>Fictional readings · complete local dataset</caption>
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef scope="col" mat-sort-header="id" sortActionDescription="Sort by ID">ID</th>
+        <td mat-cell *matCellDef="let reading">{{ reading.id }}</td>
+      </ng-container>
+      <ng-container matColumnDef="label">
+        <th mat-header-cell *matHeaderCellDef scope="col" mat-sort-header="label" sortActionDescription="Sort by label">Label</th>
+        <td mat-cell *matCellDef="let reading">{{ reading.label }}</td>
+      </ng-container>
+      <ng-container matColumnDef="minutes">
+        <th mat-header-cell *matHeaderCellDef scope="col" mat-sort-header="minutes" sortActionDescription="Sort by minutes">Minutes</th>
+        <td mat-cell *matCellDef="let reading">{{ reading.minutes }}</td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      <tr *matNoDataRow><td colspan="3">No matching readings. Clear table filter to restore the complete dataset.</td></tr>
+    </table>
+  </div>
+  <mat-paginator [pageSize]="defaultPageSize" [pageSizeOptions]="pageSizes"
+    aria-label="Local readings pagination" />
+</app-material-lesson>

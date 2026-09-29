@@ -1,0 +1,43 @@
+<a mat-button routerLink="/products" [queryParams]="backParams()">← Back to products</a>
+<header><p class="eyebrow muted">M02 / P03 · A closer look</p><h1 tabindex="-1">Product details</h1>
+  <p class="muted">{{ mode === 'mock' ? 'Local mock · session data' : 'Remote demo · DummyJSON' }} · Demo prices in USD</p></header>
+<p role="status" aria-atomic="true">{{ cartMessage() }}</p>
+@let state = product();
+<section aria-label="Product detail" [attr.aria-busy]="state.status === 'loading'">
+  @switch (state.status) {
+    @case ('loading') { <p role="status">Loading product…</p><mat-progress-bar mode="indeterminate" aria-label="Loading product" /> }
+    @case ('error') { <app-product-error [error]="state.error" (retry)="retry()" /> }
+    @case ('success') {
+      <div class="detail-grid">
+        <section class="gallery" aria-label="Product images">
+          @for (image of images(); track image; let first = $first; let index = $index) {
+            <app-product-image [class.main-image]="first" [source]="image" [description]="state.value.title + ', image ' + (index + 1)" [priority]="first" />
+          }
+        </section>
+        <mat-card appearance="outlined"><mat-card-content>
+          <p class="eyebrow muted">{{ state.value.category }}</p><h2 class="product-title">{{ state.value.title }}</h2>
+          @if (state.value.brand) { <p class="muted">By {{ state.value.brand }}</p> }
+          <p class="price">{{ state.value.price | currency:'USD' }}</p>
+          <p class="description">{{ state.value.description }}</p>
+          <dl><div><dt>Rating</dt><dd>{{ state.value.rating | number:'1.1-1' }} / 5</dd></div>
+            <div><dt>Availability</dt><dd [appStockLevel]="state.value.stock">{{ state.value.stock === 0 ? 'Out of stock' : state.value.stock + ' in stock' }}</dd></div>
+            <div><dt>Product ID</dt><dd>{{ state.value.id }}</dd></div></dl>
+          <p>{{ cart.quantityById().get(state.value.id) ?? 0 }} in your session cart</p>
+          <button mat-flat-button type="button" [disabled]="!canAdd()" (click)="addToCart()">{{ canAdd() ? 'Add to cart' : state.value.stock === 0 ? 'Out of stock' : 'Cart limit reached' }}</button>
+          <a mat-button routerLink="/cart">View cart</a>
+          <a mat-button [routerLink]="['/products', state.value.id, 'edit']" [queryParams]="backParams()">Edit product</a>
+          <p class="learning-note muted">Session snapshots only; inventory is not reserved. Product edits do not change existing cart snapshots. No real purchases.</p>
+        </mat-card-content></mat-card>
+      </div>
+      <section class="reviews" aria-labelledby="reviews-heading"><h2 id="reviews-heading">Reviews ({{ state.value.reviews.length }})</h2>
+        @for (review of state.value.reviews; track review) {
+          <mat-card appearance="outlined"><mat-card-content>
+            <h3>{{ review.author }}</h3><p class="muted">{{ review.rating | number:'1.0-1' }} / 5 · {{ review.createdAt | date:'mediumDate':'UTC' }}</p>
+            <p>{{ review.comment }}</p>
+          </mat-card-content></mat-card>
+        } @empty { <p class="muted">No reviews yet.</p> }
+      </section>
+    }
+    @default never(state);
+  }
+</section>

@@ -1,0 +1,8 @@
+:host { display: block; max-width: 900px; margin: auto; }
+h1 { margin: 8px 0; font-size: clamp(2rem, 5vw, 3rem); }
+header, aside { margin-block: 20px; line-height: 1.6; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-top: 16px; }
+.wide { grid-column: 1 / -1; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+.result { padding: 20px; margin-block: 20px; border-radius: 16px; background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); overflow-wrap: anywhere; }
+@media (max-width: 599px) { .fields { grid-template-columns: minmax(0, 1fr); } }

@@ -1,0 +1,50 @@
+<header><p>M06 · Public reads</p><h1 tabindex="-1">Users &amp; posts</h1>
+  <p>Explore public names and posts. No email, address, or session is needed.</p></header>
+<div class="filters">
+  <mat-form-field><mat-label>Search users</mat-label>
+    <input #searchInput matInput type="search" [value]="draft()" [maxLength]="maxSearchLength"
+      (input)="search(searchInput.value)" aria-describedby="search-help">
+  </mat-form-field>
+  <button mat-stroked-button type="button" (click)="clear()">Clear search</button>
+</div>
+<p id="search-help">Search waits 300 ms. Share the URL to restore the search and page.</p>
+@if (navigationError()) { <p role="alert">Unable to update the URL. Try your selection again.</p> }
+<section aria-label="User results" [attr.aria-busy]="users().status === 'loading'">
+  @let state = users();
+  @switch (state.status) {
+    @case ('loading') { <p role="status">Loading users…</p><mat-progress-bar mode="indeterminate" aria-label="Loading users" /> }
+    @case ('error') { <app-read-error section="users" [error]="state.error" (retry)="retry()" /> }
+    @case ('success') {
+      <p role="status">{{ state.value.total }} users · {{ state.value.items.length }} on this page · offset {{ state.value.skip }}</p>
+      @if (state.value.items.length) {
+        <table mat-table [dataSource]="state.value.items" aria-label="Public users">
+          <ng-container matColumnDef="avatar">
+            <th mat-header-cell *matHeaderCellDef>Avatar</th>
+            <td mat-cell *matCellDef="let user"><app-user-avatar [source]="user.image" [name]="user.firstName + ' ' + user.lastName" /></td>
+          </ng-container>
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let user"><a [routerLink]="['/users', user.id]" [queryParams]="linkParams()">{{ user.firstName }} {{ user.lastName }}</a></td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+        </table>
+      } @else {
+        <div class="empty"><h2>{{ query().pageIndex > 0 ? 'No users on this page' : 'No users found' }}</h2>
+          <p>Try a different search or return to the first page.</p>
+          @if (query().pageIndex > 0) { <button mat-button type="button" (click)="firstPage()">Go to first page</button> }
+        </div>
+      }
+      <mat-paginator [length]="state.value.total" [pageIndex]="query().pageIndex" [pageSize]="query().pageSize"
+        [pageSizeOptions]="pageSizes" (page)="paginate($event)" showFirstLastButtons aria-label="User pages" />
+    }
+  }
+</section>
+<aside class="learning" aria-label="Directory learning guide">
+  <h2>Read the URL, not a second store</h2>
+  <p><strong>Concept:</strong> the URL owns the committed query; a linked signal owns the draft.</p>
+  <p><strong>Try it:</strong> type a name, change page size, open a profile, then go Back.</p>
+  <p><strong>Angular mechanism:</strong> toSignal renders a switchMap read; newer queries cancel older requests.</p>
+  <p><strong>Common mistake:</strong> filtering only the current server page or allowing an old debounce to navigate later.</p>
+  <p><strong>Revision prompt:</strong> why does canonicalizing a URL not require a second HTTP request?</p>
+</aside>

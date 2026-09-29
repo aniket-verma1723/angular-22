@@ -1,0 +1,80 @@
+<section aria-labelledby="widgets-heading" class="widgets-section">
+  <h2 id="widgets-heading">Public API widgets</h2>
+  <p>The overview fetches widget data only on request. Choose a strategy, then select <strong>Load widgets</strong>.
+    No automatic caching, polling or refresh is used. Totals describe the last response, not live data.</p>
+  <div class="controls">
+    <label for="widget-strategy">Request strategy</label>
+    <select id="widget-strategy" #strategySelect [value]="strategy()"
+      (change)="changeStrategy(strategySelect.value)" aria-describedby="strategy-help">
+      <option value="independent">Independent widgets (default)</option>
+      <option value="combineLatest">combineLatest · partial progress</option>
+      <option value="forkJoin">forkJoin · completed snapshot</option>
+    </select>
+    <button type="button" (click)="load()" [disabled]="loaded()">Load widgets</button>
+    @if (strategy() === 'forkJoin' && loaded()) {
+      <button type="button" (click)="reloadSnapshot()" [disabled]="busy()">Reload snapshot</button>
+    }
+  </div>
+  <p id="strategy-help" class="muted">Only the selected strategy runs. After loading, changing strategy cancels the old
+    group and loads each domain once again. During a request, duplicate load/retry actions are ignored.</p>
+  <p role="status" aria-atomic="true" class="progress">{{ progress() }}</p>
+  <div class="widget-grid">
+    @for (widget of widgets(); track widget.id) {
+      @let state = widget.state;
+      <article [attr.data-widget]="widget.id" [attr.aria-labelledby]="'widget-' + widget.id"
+        [attr.aria-busy]="state.status === 'loading'">
+        <h3 [id]="'widget-' + widget.id">{{ widget.title }}</h3>
+        <p class="muted">{{ widget.description }}</p>
+        @switch (state.status) {
+          @case ('idle') { <p>Not loaded. Select Load widgets to request data.</p> }
+          @case ('loading') {
+            <p>{{ strategy() === 'forkJoin' ? 'Waiting for all snapshot requests to complete…' : 'Loading…' }}</p>
+          }
+          @case ('empty') { <p>Total: 0. No {{ widget.id }} found for this public scope.</p> }
+          @case ('error') {
+            <p class="error">{{ state.message }}</p>
+            @if (strategy() !== 'forkJoin') {
+              <button type="button" (click)="retry(widget.id)">Retry {{ widget.id }}</button>
+            } @else {
+              <p>Use Reload snapshot to request all three domains again.</p>
+            }
+          }
+          @case ('success') {
+            <p class="total">Total: {{ state.data.total }}</p>
+            @if (state.data.kind === 'tasks') {
+              <p>Page-local completion ({{ state.data.count }} returned of the first 10 tasks):
+                {{ state.data.completed }} completed · {{ state.data.incomplete }} incomplete.</p>
+              <a routerLink="/tasks">Browse public tasks</a>
+            } @else {
+              <ul>
+                @for (preview of state.data.previews; track preview.id) {
+                  <li><a [routerLink]="[state.data.kind === 'users' ? '/users' : '/posts', preview.id]">{{ preview.label }}</a></li>
+                }
+              </ul>
+            }
+          }
+        }
+      </article>
+    }
+  </div>
+  <dl class="learning">
+    <dt>Concept</dt>
+    <dd>Compare independent rendering, latest-value composition and a completed snapshot. None is universally better;
+      choose the behavior the screen needs.</dd>
+    <dt>Try it</dt>
+    <dd>Load widgets, change strategy, and observe partial progress versus waiting for the snapshot. On a failure,
+      independent and combineLatest retry only that widget; Reload snapshot requests the entire forkJoin group.</dd>
+    <dt>Angular mechanism</dt>
+    <dd>One toSignal boundary exposes component-owned RxJS state to the template and tears down on destruction.
+      switchMap cancels the previous strategy group. Each combineLatest input starts with loading, so it can show
+      partial progress without waiting for every HTTP response.</dd>
+    <dt>Common mistake</dt>
+    <dd>forkJoin waits for every input to emit and complete; a never-completing input prevents a snapshot.
+      In RxJS 7, an input completing without any value (EMPTY) makes raw forkJoin complete without a result.
+      Here, an empty stream becomes an error state, while a valid zero-total page is an empty widget.
+      Errors are mapped inside each request before joining, so one failure does not discard healthy results.
+      HTTP services also impose a 15-second response timeout. The first page cannot establish global completion counts.</dd>
+    <dt>Revision question</dt>
+    <dd>Why seed every combineLatest input with loading, and why must forkJoin recover each request before joining?</dd>
+  </dl>
+</section>

@@ -1,0 +1,119 @@
+<section aria-labelledby="profiling-heading">
+  <h2 id="profiling-heading">Profiling work versus memoized derivation</h2>
+  <h3>Concept</h3>
+  <p>A component being checked is not the same as an expensive calculation being necessary.
+    Compare an expensive template method with a <code>computed</code> value using identical
+    deterministic data and output. <strong>The expensive method is an intentional anti-pattern
+    ONLY within this lab, not a recommended application pattern.</strong></p>
+  <p>The work is capped at 12 fictional samples × {{ rounds }} arithmetic rounds per calculation.
+    Scores are checksums, not timings or real product metrics. There is no random input, I/O,
+    timer, global instrumentation, growing history or signal write during calculation.</p>
+  <h3>Try it</h3>
+  <div class="controls" role="group" aria-label="Profiling calculation mode">
+    <button type="button" [attr.aria-pressed]="mode() === 'computed'" (click)="chooseMode('computed')">
+      Use computed memoization
+    </button>
+    <button type="button" [attr.aria-pressed]="mode() === 'method'" (click)="chooseMode('method')">
+      Use expensive template method
+    </button>
+  </div>
+  <p data-profiling-mode>Selected mode: {{ mode() }}.</p>
+  <div class="controls">
+    <button type="button" [attr.aria-pressed]="note()" (click)="toggleNote()">Toggle unrelated note</button>
+    <button type="button" (click)="updateSample()">Toggle sample 1 weight</button>
+    <button type="button" (click)="reverseSamples()">Reverse samples</button>
+  </div>
+  <p role="status" data-profiling-note>Unrelated note: {{ note() ? 'shown' : 'hidden' }}.
+    This flag is not an input to the calculation.</p>
+  <!-- Deliberate method comparison stays in this lab. Both branches are side-effect-free. -->
+  @let displayedRows = mode() === 'method' ? calculateInTemplate() : memoizedRows();
+  <ul class="samples" aria-label="Deterministic profiling results">
+    @for (sample of displayedRows; track sample.id) {
+      <li [attr.data-profiling-id]="sample.id">
+        <strong>{{ sample.label }}</strong> — weight: <span data-weight>{{ sample.weight }}</span>;
+        score: <span data-score>{{ sample.score }}</span>
+      </li>
+    }
+  </ul>
+  <ol>
+    <li>Start in computed mode. Toggle the unrelated note several times: the view changes,
+      but the memoized calculation has no changed dependency.</li>
+    <li>Switch to method mode and repeat the same note toggles. Output stays equal, but the
+      calculation runs whenever Angular evaluates this template expression.</li>
+    <li>In either mode, toggle sample 1's weight between 1 and 2. Its score changes. Reverse the
+      samples: their order changes, not their IDs. Neither control adds samples.</li>
+  </ol>
+  <h4>Angular DevTools: component and injector inspection</h4>
+  <ol>
+    <li>Use a local development build with a compatible Angular DevTools extension already
+      available. Open its Components view and select <code>ProfilingLessonComponent</code>
+      beneath <code>PerformanceLabComponent</code>. If the extension is unavailable, use source
+      inspection and the browser Performance procedure below; no extension is installed by this lab.</li>
+    <li>Inspect the selected component's state/signals, then operate the note, weight and mode
+      buttons. Look for the changed dependency rather than editing private state from the console.
+      Protected/private TypeScript access is not a security boundary.</li>
+    <li>Open the Injector Tree view (names vary by extension version), locate the lesson's element
+      injector and inspect its providers/resolution path. <code>ProfilingCalculator</code> comes
+      from this component's <code>providers</code>, not a root singleton. If this view is unavailable,
+      inspect that declaration in the source instead.</li>
+    <li>Also inspect <code>AnimationLessonComponent</code> and its local
+      <code>AnimationLifetime</code> provider. Show/hide its child to compare the component tree
+      with the Elements panel's leaving host. Do not mistake a visible host for a live instance.</li>
+  </ol>
+  <h4>Angular DevTools: repeatable profiling procedure</h4>
+  <ol>
+    <li>Wait for unrelated defer/route activity to finish, keep the same data and browser settings,
+      and choose method mode before recording. Warm it up with one note toggle.</li>
+    <li>Open Profiler, start recording, toggle the unrelated note five times, then stop. Select a
+      relevant change-detection cycle and inspect this component's contribution in the available
+      timeline/flame graph. Save your own trace and label it “method”.</li>
+    <li>Switch to computed mode, warm it up, and record the same five note toggles separately.
+      The component may still be checked, but unchanged sample data should reuse the computed
+      result. Record the actual durations; do not expect a specific cycle count or speedup.</li>
+    <li>Make a third recording with one weight toggle in computed mode. The immutable replacement
+      invalidates the dependency, so the next read recalculates. Development verification passes,
+      JIT warm-up and profiler overhead can affect counts and timings. P12's application is Zone-free;
+      Zone.js remains test-only, not a confounder in these application traces.</li>
+  </ol>
+  <h4>Browser Performance: verify where time went</h4>
+  <ol>
+    <li>Stop the Angular recording. In browser DevTools, open Performance. Keep CPU throttling,
+      viewport, build and data identical for each comparison; note these settings with the trace.</li>
+    <li>Record the same five note toggles in method mode, then separately in warmed computed mode.
+      Stop each recording. Zoom to an interaction and inspect Main, Call tree or Bottom-up for
+      scripting work; with source maps, look for <code>calculateInTemplate</code> and
+      <code>ProfilingCalculator.calculate</code>. Sampled stacks may miss this small workload.</li>
+    <li>Compare scripting with style/layout/paint work and the interaction's presentation delay.
+      Reverse the list in a separate trace to study DOM moves. Stable identity avoids replacing
+      rows but does not promise zero layout or paint work.</li>
+    <li>Repeat runs, preserve the actual traces, and validate user-visible behavior in production
+      output separately. Angular component inspection requires a development build; browser
+      Performance can profile production. Do not compare unlike builds as if only memoization changed.</li>
+  </ol>
+  <h3>What Angular does</h3>
+  <p>These components use Angular 22's default OnPush behavior. A handled button event or a changed
+    template signal can schedule a check. OnPush does not memoize arbitrary methods. The method
+    recalculates on template evaluation; <code>computed</code> is lazy and caches its last result
+    until a dependency changes. Reading the unrelated note does not invalidate the sample calculation.</p>
+  <p>The weight action replaces the array and the changed object; reversal copies before reversing.
+    <code>&#64;for (sample of displayedRows; track sample.id)</code> lets Angular associate each row
+    with a stable ID even when result objects are new. Memoization saves calculation; tracking saves
+    unnecessary DOM replacement. They solve different problems. A pure pipe is another option for
+    argument-based derivation, but this exercise compares a method directly with a computed value.</p>
+  <h3>Common mistake</h3>
+  <p>Do not mutate a signal's array or nested object in place, track reorderable rows by index,
+    increment reactive counters during template evaluation, or manually force change detection to
+    hide a broken update path. Memoization does not make genuinely changed data free: this bounded
+    example recalculates all 12 rows after a weight update or reorder, not just the changed row.</p>
+  <h3>Revision question</h3>
+  <p>Why can the note trigger a component check without another computed calculation? Why can
+    a new array invalidate the calculation while every list element retains its DOM identity?</p>
+  <h3>Test observation</h3>
+  <p>Jasmine spies on the local calculator's public method: note toggles reuse computed work,
+    method mode recalculates, and immutable updates refresh scores. Tests retain actual list-node
+    references to verify stable identity on update and reorder. No production rendering counter
+    is added, so instrumentation cannot schedule a feedback loop.</p>
+  <p>No profiler results have been collected by this lesson. Call-count assertions prove a mechanism,
+    not a speedup, frame budget, INP score or field Web Vital. Small traces can be noisy; report
+    inconclusive results honestly rather than increasing work until the browser becomes unresponsive.</p>
+</section>

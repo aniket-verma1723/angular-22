@@ -1,0 +1,15 @@
+:host { display: block; min-width: 0; }
+h1 { font-size: clamp(2rem, 4vw, 3rem); margin: .5rem 0; }
+.filters { display: flex; flex-wrap: wrap; gap: 1rem; align-items: start; margin-top: 1.5rem; }
+mat-form-field { flex: 1 1 240px; min-width: 0; }
+.filters button { margin-top: .5rem; }
+table { width: 100%; table-layout: fixed; }
+th:first-child, td:first-child { width: 72px; }
+td { padding-top: .5rem; padding-bottom: .5rem; overflow-wrap: anywhere; }
+a { color: var(--mat-sys-primary); }
+a:focus-visible { outline: 2px solid var(--mat-sys-primary); outline-offset: 4px; }
+.empty, .learning { padding: 1rem; margin-top: 1.5rem; border-radius: 16px; background: var(--mat-sys-surface-container-low); }
+.learning { font-size: .9rem; }
+.learning h2 { font-size: 1.2rem; }
+mat-paginator { margin-top: 1rem; }
+@media (max-width: 599px) { .filters { gap: .25rem; } .filters button { margin: 0 0 1rem; } }

@@ -1,0 +1,24 @@
+<app-component-experiment-card [lesson]="lesson">
+  <div class="controls">
+    <button type="button" [disabled]="values.length >= 6" (click)="mutateFixture()">Append 3 in place (fixture only)</button>
+    <button type="button" (click)="eventCount = eventCount + 1">Unrelated event check</button>
+    <button type="button" (click)="replaceReference()">Replace array reference</button>
+    <button type="button" (click)="reset()">Reset pipe fixture</button>
+  </div>
+  <p data-raw>Raw fixture:
+    @for (value of values; track $index; let last = $last) {<span>{{ value }}{{ last ? '' : ', ' }}</span>}
+    . Unrelated events: {{ eventCount }}</p>
+  <p class="observation">Pure sum: <strong data-pure>{{ values | fixturePureSum }}</strong>;
+    impure sum: <strong data-impure>{{ values | fixtureImpureSum }}</strong>.</p>
+  <details>
+    <summary>Locale formatting, not price calculation</summary>
+    <p>Current locale: {{ locale }}. Currency remains USD; date is an instant in UTC.</p>
+    <ul>
+      <li data-cents>1250 cents: {{ 1250 | usdCents }}; zero: {{ 0 | usdCents }}</li>
+      <li data-currency>Currency: {{ 12.5 | currency:'USD':'symbol':'1.2-2' }}</li>
+      <li data-date>UTC date: {{ timestamp | date:'medium':'UTC' }}</li>
+      <li data-number>Decimal: {{ 1234.5 | number:'1.1-1' }}; proportion: {{ 0.25 | percent }}</li>
+      <li data-text>{{ 'local fixture' | uppercase }}</li>
+    </ul>
+  </details>
+</app-component-experiment-card>

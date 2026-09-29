@@ -1,0 +1,16 @@
+<section [attr.aria-label]="label()">
+  <h3>{{ label() }}</h3>
+  <button mat-stroked-button type="button" (click)="showProbes.set(!showProbes())"
+    [attr.aria-expanded]="showProbes()">
+    {{ showProbes() ? 'Hide probes' : 'Show probes' }}
+  </button>
+  @if (showProbes()) {
+    <div class="probes">
+      <app-counter-probe name="Probe A" />
+      <app-counter-probe name="Probe B" />
+    </div>
+  }
+  <!-- A separate view, after the probes, observes their hook-driven registry updates.
+       The owning parent does not read lifecycle state before its children initialize. -->
+  <app-counter-observation />
+</section>

@@ -1,0 +1,101 @@
+import { TestBed, fakeAsync } from '@angular/core/testing';
+import { FormField } from '@angular/forms/signals';
+import { By } from '@angular/platform-browser';
+import { FormsCoreLessonsComponent } from './forms-core-lessons.component';
+import { clickLab, labButton, labElement, labInput, renderLab, submitLab, typeLab } from './forms-lab.spec-helpers';
+
+describe('FormsCoreLessonsComponent', () => {
+  it('renders the typed allowlist, hidden/readonly state and conditional required schema', fakeAsync(() => {
+    const fixture = TestBed.createComponent(FormsCoreLessonsComponent);
+    renderLab(fixture);
+    expect(labElement(fixture).querySelectorAll('[data-metadata-field]').length).toBe(2);
+    expect(labInput(fixture, '[data-metadata-field=code]').readOnly).toBeTrue();
+    expect(labElement(fixture).textContent).toContain('Practice alias');
+    typeLab(fixture, '[data-metadata-field=alias]', 'Learner');
+    expect(labButton(fixture, 'Simulate field rejection').disabled).toBeFalse();
+    labInput(fixture, '[data-show-details]').click(); renderLab(fixture);
+    expect(labElement(fixture).querySelectorAll('[data-metadata-field]').length).toBe(3);
+    expect(labButton(fixture, 'Simulate field rejection').disabled).toBeTrue();
+    typeLab(fixture, '[data-metadata-field=details]', '');
+    expect(labElement(fixture).textContent).toContain('Details are required while shown.');
+    typeLab(fixture, '[data-metadata-field=details]', 'Preserved details');
+    expect(labButton(fixture, 'Simulate field rejection').disabled).toBeFalse();
+    labInput(fixture, '[data-show-details]').click(); renderLab(fixture);
+    expect(labElement(fixture).querySelector('[data-metadata-field=details]')).toBeNull();
+    expect(labElement(fixture).querySelector('[data-metadata-state]')?.textContent).toContain('Details hidden: true');
+    labInput(fixture, '[data-show-details]').click(); renderLab(fixture);
+    expect(labInput(fixture, '[data-metadata-field=details]').value).toBe('Preserved details');
+    labInput(fixture, '[data-lock-code]').click(); renderLab(fixture);
+    expect(labInput(fixture, '[data-metadata-field=code]').readOnly).toBeFalse();
+    typeLab(fixture, '[data-metadata-field=code]', 'Changed fixture');
+    clickLab(fixture, 'Reset core lessons');
+    expect(labInput(fixture, '[data-metadata-field=code]').readOnly).toBeTrue();
+    expect(labInput(fixture, '[data-metadata-field=code]').value).toBe('LOCAL FIXTURE');
+    expect(labElement(fixture).querySelector('[data-metadata-field=details]')).toBeNull();
+    expect(labButton(fixture, 'Simulate field rejection').disabled).toBeTrue();
+    fixture.destroy();
+  }));
+
+  it('excludes a hidden empty required field and exposes returned server errors on the alias', fakeAsync(() => {
+    const fixture = TestBed.createComponent(FormsCoreLessonsComponent);
+    renderLab(fixture);
+    typeLab(fixture, '[data-metadata-field=alias]', 'Learner');
+    labInput(fixture, '[data-show-details]').click(); renderLab(fixture);
+    expect(labButton(fixture, 'Simulate field rejection').disabled).toBeTrue();
+    labInput(fixture, '[data-show-details]').click(); renderLab(fixture);
+    expect(labButton(fixture, 'Simulate field rejection').disabled).toBeFalse();
+    submitLab(fixture);
+    const alias = fixture.debugElement.query(By.css('[data-metadata-field=alias]')).injector.get(FormField);
+    expect(alias.state().errors().map(issue => issue.kind)).toContain('server');
+    expect(labElement(fixture).querySelector('#metadata-error-alias')?.textContent).toContain('Simulated server field error');
+    expect(labButton(fixture, 'Simulate field rejection').disabled).toBeTrue();
+    typeLab(fixture, '[data-metadata-field=alias]', 'Another learner');
+    expect(alias.state().errors()).toEqual([]);
+    expect(labButton(fixture, 'Simulate field rejection').disabled).toBeFalse();
+    submitLab(fixture);
+    clickLab(fixture, 'Reset core lessons');
+    expect(alias.state().errors().some(issue => issue.kind === 'server')).toBeFalse();
+    expect(alias.state().touched()).toBeFalse();
+    fixture.destroy();
+  }));
+
+  it('adapts Reactive and Signal controls in both directions and resets their own state', fakeAsync(() => {
+    const fixture = TestBed.createComponent(FormsCoreLessonsComponent);
+    renderLab(fixture);
+    typeLab(fixture, '[data-compat-legacy]', 'Edited legacy');
+    expect(labElement(fixture).querySelector('[data-compat-state]')?.textContent).toContain('Reactive owner: Edited legacy');
+    expect(labElement(fixture).querySelector('[data-compat-state]')?.textContent).toContain('Adapted value: Edited legacy');
+    typeLab(fixture, '[data-compat-legacy]', '');
+    expect(labElement(fixture).querySelector('[data-compat-state]')?.textContent).toContain('Valid: false');
+    typeLab(fixture, '[data-bridge-migrated]', '');
+    expect(labElement(fixture).querySelector('[data-bridge-state]')?.textContent).toContain('Reactive group status: INVALID');
+    typeLab(fixture, '[data-bridge-migrated]', 'Edited signal');
+    expect(labElement(fixture).querySelector('[data-bridge-state]')?.textContent).toContain('Reactive group status: VALID');
+    clickLab(fixture, 'Reset core lessons');
+    expect(labInput(fixture, '[data-compat-legacy]').value).toBe('Legacy fixture');
+    expect(labInput(fixture, '[data-bridge-migrated]').value).toBe('Migrated fixture');
+    expect(labElement(fixture).querySelector('[data-compat-state]')?.textContent).toContain('Valid: true');
+    fixture.destroy();
+  }));
+
+  it('distinguishes patch/set value from reset and isolates fixture instances', fakeAsync(() => {
+    const fixture = TestBed.createComponent(FormsCoreLessonsComponent);
+    const other = TestBed.createComponent(FormsCoreLessonsComponent);
+    renderLab(fixture); renderLab(other);
+    typeLab(fixture, '[data-updates-label]', 'User edit');
+    clickLab(fixture, 'Patch practice label');
+    expect(labInput(fixture, '[data-updates-label]').value).toBe('Patched label');
+    expect(labInput(fixture, '[data-updates-category]').value).toBe('Local category');
+    expect(labElement(fixture).querySelector('[data-updates-state]')?.textContent).toContain('Practice dirty: true');
+    clickLab(fixture, 'Set both practice values');
+    expect(labInput(fixture, '[data-updates-category]').value).toBe('Set category');
+    expect(labElement(fixture).querySelector('[data-updates-state]')?.textContent).toContain('Practice touched: true');
+    expect(labInput(other, '[data-updates-label]').value).toBe('Initial label');
+    clickLab(fixture, 'Reset value practice');
+    expect(labInput(fixture, '[data-updates-label]').value).toBe('Initial label');
+    expect(labInput(fixture, '[data-updates-category]').value).toBe('Local category');
+    expect(labElement(fixture).querySelector('[data-updates-state]')?.textContent).toContain('Practice dirty: false');
+    expect(labElement(fixture).querySelector('[data-updates-state]')?.textContent).toContain('Practice touched: false');
+    fixture.destroy(); other.destroy();
+  }));
+});

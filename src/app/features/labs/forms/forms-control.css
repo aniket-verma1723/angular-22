@@ -1,0 +1,7 @@
+:host { display: block; min-width: 0; }
+label { display: grid; gap: 8px; }
+input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 10px; border: 1px solid var(--mat-sys-outline, currentColor); border-radius: 8px; background: var(--mat-sys-surface); color: var(--mat-sys-on-surface); font: inherit; }
+input:focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 3px; }
+input:disabled { opacity: .65; }
+.check { display: flex; align-items: center; min-height: 44px; }
+input[type=checkbox] { width: 22px; min-height: 22px; flex: 0 0 22px; accent-color: var(--mat-sys-primary); }

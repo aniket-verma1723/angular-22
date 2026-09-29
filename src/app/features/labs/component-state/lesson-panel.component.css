@@ -1,0 +1,4 @@
+:host { display: block; min-width: 0; }
+.lesson-panel { height: 100%; box-sizing: border-box; padding: 1.25rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 1rem; background: var(--mat-sys-surface-container-low); }
+footer { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--mat-sys-outline-variant); }
+footer p { margin: 0; }

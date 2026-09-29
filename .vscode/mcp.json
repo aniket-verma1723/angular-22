@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "angularCli": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/node_modules/node/bin/node.exe",
+      "args": [
+        "${workspaceFolder}/node_modules/@angular/cli/bin/ng.js",
+        "mcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NG_CLI_ANALYTICS": "false",
+        "PATH": "${workspaceFolder}/node_modules/node/bin;${workspaceFolder}/node_modules/.bin;${env:PATH}"
+      }
+    }
+  }
+}

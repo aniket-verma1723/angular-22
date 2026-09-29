@@ -1,0 +1,37 @@
+:host { display: block; min-width: 0; color: var(--mat-sys-on-surface, CanvasText); }
+header, section, aside { margin-block-end: 1.5rem; overflow-wrap: anywhere; }
+section, aside {
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--mat-sys-outline-variant, GrayText);
+  border-radius: 1rem;
+  background: var(--mat-sys-surface-container-low, Canvas);
+}
+.workbench { border-color: var(--mat-sys-primary, Highlight); }
+h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); }
+h2 { margin-block-start: 0; }
+h3 { font-size: 1rem; margin-block: 1.25rem .4rem; }
+p, li { max-width: 80ch; line-height: 1.65; }
+li + li { margin-block-start: .75rem; }
+ul { padding-inline-start: 1.25rem; }
+fieldset { min-inline-size: 0; margin: 1rem 0; padding: .75rem; border: 1px solid var(--mat-sys-outline, GrayText); border-radius: .75rem; }
+legend { padding-inline: .4rem; font-weight: 600; }
+label { display: flex; align-items: center; gap: .65rem; min-height: 44px; cursor: pointer; }
+input { flex: 0 0 auto; width: 1.2rem; height: 1.2rem; accent-color: var(--mat-sys-primary, Highlight); }
+.controls { display: flex; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
+button {
+  min-height: 44px; max-width: 100%; padding: .55rem 1rem; font: inherit; cursor: pointer;
+  color: var(--mat-sys-on-surface, CanvasText); background: var(--mat-sys-surface, Canvas);
+  border: 1px solid var(--mat-sys-outline, GrayText); border-radius: .5rem;
+}
+button.primary { color: var(--mat-sys-on-primary, HighlightText); background: var(--mat-sys-primary, Highlight); }
+button:disabled { cursor: not-allowed; opacity: .55; }
+fieldset:disabled label { cursor: not-allowed; }
+.readout { padding: 1rem; border-radius: .75rem; background: var(--mat-sys-surface-container, Canvas); }
+dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1rem; margin: 0; }
+dt { font-size: .85rem; color: var(--mat-sys-on-surface-variant, CanvasText); }
+dd { margin: .35rem 0 0; font-weight: 600; }
+.count { font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+.status { font-weight: 600; min-block-size: 3.3em; }
+a { color: var(--mat-sys-primary, LinkText); text-underline-offset: .2em; }
+header > a { display: inline-flex; align-items: center; min-height: 44px; }
+:is(button, input, a, [tabindex]):focus-visible { outline: 3px solid var(--mat-sys-primary, Highlight); outline-offset: 3px; }

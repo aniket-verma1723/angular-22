@@ -1,0 +1,19 @@
+<header>
+  <p>P10 · CDK mechanisms</p>
+  <h1 tabindex="-1">CDK lab</h1>
+  <a routerLink="/labs">All labs</a>
+  <p>Predict, interact, observe, then revise. These independent experiments send no HTTP and
+    change no cart, session, production users table or application settings.</p>
+  <p>Only one experiment exists at a time. Switching or leaving destroys its views and resets its
+    local state. Drag/drop belongs to the task board; Material presentation belongs to the gallery.</p>
+</header>
+<nav class="controls" aria-label="CDK experiments">
+  <button type="button" [attr.aria-pressed]="experiment() === 'overlay'" (click)="choose('overlay')">Overlay and portal</button>
+  <button type="button" [attr.aria-pressed]="experiment() === 'virtual'" (click)="choose('virtual')">Virtual people</button>
+  <button type="button" [attr.aria-pressed]="experiment() === 'utilities'" (click)="choose('utilities')">Accessibility and utilities</button>
+</nav>
+@switch (experiment()) {
+  @case ('overlay') { <app-overlay-experiment /> }
+  @case ('virtual') { <app-virtual-people-experiment /> }
+  @case ('utilities') { <app-utilities-experiment /> }
+}

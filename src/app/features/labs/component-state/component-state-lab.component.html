@@ -1,0 +1,82 @@
+<header class="page-heading">
+  <p class="eyebrow">P04 · Components, state and lifetime</p>
+  <h1 tabindex="-1">Component state lab</h1>
+  <p>A local playground: nothing here changes your cart or sends an API request.</p>
+</header>
+
+<section aria-labelledby="concept-heading">
+  <h2 id="concept-heading">Concept</h2>
+  <p>State belongs to an owner. A model connects a child control to its parent's signal;
+    projection lets the caller supply content; a component provider shares state only inside its experiment.</p>
+</section>
+
+<section aria-labelledby="try-heading">
+  <h2 id="try-heading">Try it</h2>
+  <div class="panel-grid">
+    <app-lesson-panel>
+      <h3 lesson-title>Local quantity model</h3>
+      <app-quantity-control [(quantity)]="draftQuantity" [max]="5" label="Lab draft quantity" />
+      <p>Parent draft quantity: <strong data-draft>{{ draftQuantity() }}</strong> (1–5).</p>
+      <button lesson-actions mat-stroked-button type="button" (click)="draftQuantity.set(1)">
+        Reset draft quantity
+      </button>
+    </app-lesson-panel>
+    <app-lesson-panel />
+  </div>
+  <p>The first panel projects a heading, default content and an action. The empty panel shows slot fallbacks.</p>
+  <p>Increment either sibling, then hide and show its probes. The count survives while the experiment exists.
+    Destroy and recreate the first experiment to get a fresh provider and count.</p>
+  <button mat-stroked-button type="button" (click)="showFirstExperiment.set(!showFirstExperiment())"
+    [attr.aria-expanded]="showFirstExperiment()">
+    {{ showFirstExperiment() ? 'Destroy first experiment' : 'Recreate first experiment' }}
+  </button>
+  <div class="experiment-grid">
+    @if (showFirstExperiment()) {
+      <app-counter-experiment label="First experiment" />
+    }
+    <app-counter-experiment label="Independent experiment" />
+  </div>
+</section>
+
+<section aria-labelledby="mechanism-heading">
+  <h2 id="mechanism-heading">Angular mechanism</h2>
+  <ul>
+    <li><code>model()</code> creates a writable input and its matching change output.
+      <code>[(quantity)]="draftQuantity"</code> binds the signal itself, not its current value.</li>
+    <li><code>ng-content</code> selects <code>[lesson-title]</code> and <code>[lesson-actions]</code>;
+      unmatched content goes into the default slot. Fallback content appears for empty slots.</li>
+    <li><code>providers: [LabCounter]</code> gives each experiment one injectable instance.
+      Both probes call <code>inject(LabCounter)</code> and resolve their nearest owner.</li>
+    <li><code>OnInit</code> registers a probe and <code>OnDestroy</code> unregisters it.
+      A later sibling observation view reads the service's signals after probe hooks, not through a synchronous parent hook binding.</li>
+    <li><code>computed()</code> derives the active-probe count. Read-only signals expose observations;
+      semantic methods own writes. Angular's default OnPush tracks these signal reads.</li>
+    <li>In the catalogue, <code>ProductCardComponent</code> receives required product inputs and emits add intent;
+      the parent calls the root cart service. The card never owns a second cart.</li>
+    <li><code>StockLevelDirective</code> uses host metadata for emphasis while stock text remains readable.
+      The pure <code>UsdCentsPipe</code> formats derived cart amounts; it does not calculate or change prices.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="mistake-heading">
+  <h2 id="mistake-heading">Common mistake</h2>
+  <p>Providing the counter on each probe would split sibling state. Providing it at root would accidentally
+    share both experiments. Copying derived values with effects adds a second writable source of truth.</p>
+  <p>Do not synchronously change a checked parent binding from a child's initialization hook.
+    A timer or manual change detection would hide the ownership problem rather than solve it.</p>
+</section>
+
+<section aria-labelledby="revision-heading">
+  <h2 id="revision-heading">Revision question</h2>
+  <p>Why does hiding both probes preserve the count, but destroying their experiment resets it?
+    Which provider scope would make the two experiments share a count?</p>
+</section>
+
+<section aria-labelledby="observation-heading">
+  <h2 id="observation-heading">Test observation</h2>
+  <p>Expect both siblings to display the same count, the independent experiment to stay unchanged,
+    and active probes to move between two and zero. The bounded log retains only the last 12 lifecycle events.</p>
+  <p>Counters intentionally live only for the experiment's lifetime. Recreating the page also resets the draft quantity.
+    The application's root cart service, in contrast, persists across route navigation within the same application session.
+    This lab never injects or updates that cart.</p>
+</section>

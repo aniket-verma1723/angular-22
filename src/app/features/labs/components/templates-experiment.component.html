@@ -1,0 +1,16 @@
+<app-component-experiment-card [lesson]="lesson">
+  <div class="controls">
+    <label><input #permission type="checkbox" [checked]="allowed()" (change)="allowed.set(permission.checked)">Allow local preview</label>
+    <button type="button" (click)="revise()">Update template context</button>
+  </div>
+  <ng-template appNoticeTemplate #notice="appNoticeTemplate" let-label let-count="count">
+    <p data-notice>{{ label }}: revision {{ count }}</p>
+  </ng-template>
+  <ng-container [ngTemplateOutlet]="notice.template" [ngTemplateOutletContext]="context()" />
+  <section *appPermissionView="allowed(); subject: subject(); let learner; let granted = allowed"
+    aria-label="Local permission preview" class="observation">
+    <p data-permission>{{ learner.label }}: revision {{ learner.revision }}; allowed: {{ granted }}</p>
+    <label>Unsaved local preview text <input type="text" maxlength="80"></label>
+  </section>
+  @if (!allowed()) { <p>Preview absent. Its data is still local and public; this is not a security boundary.</p> }
+</app-component-experiment-card>

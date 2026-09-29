@@ -1,0 +1,25 @@
+:host {
+  display: block;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding: clamp(.75rem, 2vw, 1.5rem);
+}
+
+.fixtures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
+  gap: 1rem;
+  margin-block: 1.5rem;
+}
+
+mat-card, mat-card-content, mat-form-field { min-width: 0; }
+mat-form-field { display: block; width: 100%; margin-block: 1.25rem; }
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+p, li, dd { line-height: 1.6; overflow-wrap: anywhere; }
+li + li { margin-top: .5rem; }
+dt { font-weight: 600; }
+dd { margin: .25rem 0 .75rem; }
+h1:focus-visible, a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--mat-sys-primary, currentColor);
+  outline-offset: 3px;
+}

@@ -1,0 +1,105 @@
+@let probe = snapshot;
+<header>
+  <a routerLink="/labs">All labs</a>
+  <p class="eyebrow">P12 · Explicit notifications</p>
+  <h1 tabindex="-1">Zoneless notification lab</h1>
+  <p>One local callback. Two reliable ways to tell Angular that the view has changed.</p>
+</header>
+
+<section aria-labelledby="zoneless-concept">
+  <h2 id="zoneless-concept">Concept</h2>
+  <p><strong>OnPush decides which views need checking; scheduling decides when Angular checks.</strong>
+    This component uses Angular 22’s default OnPush. A native timer or an imperative
+    <code>EventTarget</code> listener is not, by itself, a zoneless change notification.</p>
+  <p>Compare a template-read signal with a plain snapshot plus
+    <code>ChangeDetectorRef.markForCheck()</code>. Both modes use the same local event source;
+    neither forces synchronous rendering.</p>
+</section>
+
+<section class="workbench" aria-labelledby="zoneless-try">
+  <h2 id="zoneless-try">Try it</h2>
+  <p id="probe-help">Choose a notification, then arm one 1,000 ms callback. Wait without clicking
+    anything else. Reset to switch modes or run again. No network, storage, or repeating timer.</p>
+  <fieldset [disabled]="probe.status !== 'idle'" aria-describedby="probe-help">
+    <legend>Notification mode</legend>
+    <label>
+      <input type="radio" name="zoneless-mode" value="signal" [checked]="mode() === 'signal'"
+        (change)="selectMode('signal')">
+      <span>Signal notification</span>
+    </label>
+    <label>
+      <input type="radio" name="zoneless-mode" value="mark-for-check" [checked]="mode() === 'mark-for-check'"
+        (change)="selectMode('mark-for-check')">
+      <span>markForCheck notification</span>
+    </label>
+  </fieldset>
+  <div class="controls">
+    <button class="primary" type="button" [disabled]="probe.status !== 'idle'" (click)="start()">Arm callback</button>
+    <button type="button" [disabled]="probe.status !== 'pending'" (click)="cancel()">Cancel callback</button>
+    <button type="button" (click)="reset()">Reset probe</button>
+  </div>
+  <div class="readout" [attr.aria-busy]="probe.status === 'pending'">
+    <dl>
+      <div><dt>Source</dt><dd>Timer → private EventTarget</dd></div>
+      <div><dt>Notification</dt><dd>{{ mode() === 'signal' ? 'Template-read signal' : 'markForCheck()' }}</dd></div>
+      <div><dt>Completed callbacks</dt><dd class="count" data-testid="probe-count">{{ probe.count }}</dd></div>
+    </dl>
+  </div>
+  <p role="status" aria-atomic="true" class="status" data-testid="probe-status">
+    @switch (probe.status) {
+      @case ('idle') { Idle — ready to arm. }
+      @case ('pending') { Pending — waiting for the local callback. }
+      @case ('done') { Done — callback rendered. }
+      @case ('cancelled') { Cancelled — no callback applied. Reset to try again. }
+    }
+  </p>
+  <h3>Observation</h3>
+  <p data-testid="probe-observation">
+    @switch (probe.status) {
+      @case ('idle') { Predict: will a plain assignment alone schedule this view? }
+      @case ('pending') { The delayed callback is armed. The displayed count remains zero until it completes. }
+      @case ('done') {
+        @if (mode() === 'signal') {
+          The native listener wrote a signal read by this template. Angular scheduled the refreshed view.
+        } @else {
+          The native listener replaced a plain snapshot and called markForCheck(). No signal was written at completion.
+        }
+        The count is completed callbacks, not change-detection passes or a performance benchmark.
+      }
+      @case ('cancelled') { The timer was cleared and its old callback invalidated. The count stays zero. }
+    }
+  </p>
+</section>
+
+<section aria-labelledby="zoneless-angular">
+  <h2 id="zoneless-angular">What Angular does</h2>
+  <ul>
+    <li>A changed signal consumed by the template or <code>markForCheck()</code> notifies Angular.
+      The callback finishes without a second Angular button event.</li>
+    <li>Angular-bound template/host listeners also notify. An imperative native listener needs its own bridge.</li>
+    <li><code>NgZone.run()</code> alone is not a zoneless notification; wrapping a plain assignment is not a fix.</li>
+    <li>Reactive Forms model updates do not automatically schedule a view. Bridge relevant
+      <code>valueChanges</code>, <code>statusChanges</code>, or form events through a template-read signal,
+      <code>AsyncPipe</code>, or a lifecycle-owned <code>markForCheck()</code> subscription.</li>
+    <li>Angular stability does not wait for all native timers. <code>whenStable()</code> waits for Angular’s
+      tracked work, not this delay. Tests first deliver the callback, then await the scheduled render.</li>
+    <li>Test-only Zone.js remains available for the existing Jasmine/Karma suite. These specs explicitly use
+      <code>provideZonelessChangeDetection()</code>; Zone’s presence does not select their rendering strategy.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="zoneless-mistake">
+  <h2 id="zoneless-mistake">Common mistake</h2>
+  <p>Assigning a plain field in an external callback and expecting a clean OnPush view to refresh.
+    A later button click can hide the missing notification. This lab keeps both live paths correct rather
+    than deliberately introducing stale bindings. See the <a routerLink="/labs/state">reactive state lab</a>
+    for the separate Eager/OnPush contrast; Eager is not polling either.</p>
+  <p>Cancel, reset, and destruction clear the owned timer. Destruction also removes the native listener;
+    an invalidated callback cannot complete a newer run.</p>
+</section>
+
+<aside aria-labelledby="zoneless-revision">
+  <h2 id="zoneless-revision">Revision question</h2>
+  <p>If you remove <code>markForCheck()</code> from the native listener, why might clicking an unrelated
+    button make a broken example appear correct? Which bridge would you choose for an async form validator?</p>
+</aside>

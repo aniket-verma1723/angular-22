@@ -1,1 +1,26 @@
-/* You can add global styles to this file, and also import other style files */
+html, body { min-height: 100%; }
+body {
+	margin: 0;
+	background: var(--mat-sys-surface);
+	color: var(--mat-sys-on-surface);
+	font: var(--mat-sys-body-large);
+	font-family: 'Segoe UI', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+a { color: var(--mat-sys-primary); }
+button, select { font: inherit; }
+:focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 4px; }
+h1 { font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.15; letter-spacing: -0.04em; margin: 0 0 1rem; }
+h2 { font-size: 1.35rem; line-height: 1.35; margin: 0 0 0.75rem; }
+p { line-height: 1.7; }
+.eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.muted { color: var(--mat-sys-on-surface-variant); }
+.status-label { padding: 0.35rem 0.75rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 600; background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

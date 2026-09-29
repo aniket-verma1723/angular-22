@@ -1,0 +1,42 @@
+<header><p class="eyebrow muted">M03 / P04 · Signals in action</p><h1 #heading tabindex="-1">Cart</h1>
+  <p class="muted">Your session cart · USD · No real purchases</p></header>
+<p role="status" aria-atomic="true">{{ message() }}</p>
+@if (cart.lines().length) {
+  <div class="cart-layout">
+    <section aria-label="Cart items" class="cart-lines">
+      @for (line of cart.lines(); track line.productId) {
+        <mat-card appearance="outlined"><mat-card-content>
+          <h2><a [routerLink]="['/products', line.productId]">{{ line.title }}</a></h2>
+          <p>{{ line.unitPriceCents | usdCents }} each · Stock snapshot: {{ line.stock }}</p>
+          <div class="line-actions">
+            <app-quantity-control [quantity]="line.quantity" [max]="line.stock" [label]="'Quantity for ' + line.title"
+              (quantityChange)="setQuantity(line.productId, $event)" />
+            <strong>{{ line.unitPriceCents * line.quantity | usdCents }}</strong>
+            <button mat-button type="button" [attr.aria-label]="'Remove ' + line.title" (click)="remove(line.productId, line.title)">Remove</button>
+          </div>
+        </mat-card-content></mat-card>
+      }
+    </section>
+    <mat-card appearance="outlined" class="summary"><mat-card-content>
+      <h2>Session summary</h2><p>{{ cart.itemCount() }} items · {{ cart.lines().length }} different products</p>
+      <p class="subtotal">Subtotal <strong>{{ cart.subtotalCents() | usdCents }}</strong></p>
+      <p class="muted">No discounts, shipping or taxes are applied. Checkout returns a simulated receipt; nothing is charged.</p>
+      <a mat-flat-button routerLink="/checkout">Practice checkout</a>
+      <button #clearButton mat-stroked-button type="button" (click)="confirmClear.set(true)" [attr.aria-expanded]="confirmClear()">Clear cart</button>
+      @if (confirmClear()) {
+        <div role="group" aria-label="Confirm clear cart"><p>Remove every item?</p>
+          <button mat-button type="button" (click)="clear()">Yes, clear cart</button>
+            <button mat-button type="button" (click)="keepCart()">Keep cart</button></div>
+          }
+    </mat-card-content></mat-card>
+  </div>
+} @else {
+  <mat-card appearance="outlined"><mat-card-content><h2>Your cart is empty</h2>
+    <p>Add an in-stock product to explore immutable updates and computed totals.</p></mat-card-content></mat-card>
+}
+<nav aria-label="Cart learning links"><a mat-flat-button routerLink="/products">Continue browsing</a>
+  <a mat-button routerLink="/labs/component-state">Explore the component state lab</a></nav>
+<aside class="muted"><h2>What is saved?</h2><p>Only this browser app session. Reload clears the cart; route navigation does not.
+  The first add captures the price and stock, and later adds keep that snapshot. Inventory is not reserved or refreshed.
+  Remove and re-add to capture a new snapshot. Up to 99 per product and 100 different products; actual snapshot stock may be lower.</p>
+  <p>One private signal owns the lines. Item count and subtotal are computed; quantity controls emit intent, not direct mutations.</p></aside>

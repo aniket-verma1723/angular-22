@@ -1,0 +1,9 @@
+<div role="alert">
+  <h3>{{ section() }}: {{ label() }}</h3>
+  <p>{{ error().message }}</p>
+  @if (retryable()) {
+    <button mat-stroked-button type="button" (click)="retry.emit()">Retry {{ section() }}</button>
+  } @else {
+    <p>Check the link or return to the users directory.</p>
+  }
+</div>

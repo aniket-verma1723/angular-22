@@ -6,6 +6,9 @@
 /out-tsc
 /bazel-out
 
+# Local project archive
+/angular-22.tar
+
 # Node
 /node_modules
 npm-debug.log
@@ -26,6 +29,7 @@ yarn-error.log
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+!.vscode/mcp.json
 .history/*
 
 # Miscellaneous
@@ -33,6 +37,8 @@ yarn-error.log
 .sass-cache/
 /connect.lock
 /coverage
+/test-results
+/playwright-report
 /libpeerconnection.log
 testem.log
 /typings

@@ -1,0 +1,55 @@
+<article aria-labelledby="utilities-lesson-title">
+  <h2 id="utilities-lesson-title">Local accessibility and text utilities</h2>
+  <h3>Concept</h3>
+  <p>Direction, focus origin, textarea size and clipboard success are different concerns. Each CDK
+    primitive supplies a mechanism, not a global preference or a guarantee that a browser action succeeds.</p>
+  <h3>Try it</h3>
+  <p>Switch the preview to RTL, type fictional multiline text, focus the probe with Tab or a pointer,
+    then copy the public link. Predict what changes outside this card: nothing.</p>
+  <div class="controls" role="group" aria-label="Scratch direction">
+    <button type="button" [attr.aria-pressed]="direction() === 'ltr'" (click)="setDirection('ltr')">Preview LTR</button>
+    <button type="button" [attr.aria-pressed]="direction() === 'rtl'" (click)="setDirection('rtl')">Preview RTL</button>
+  </div>
+  <section #localDir="dir" [dir]="direction()" (dirChange)="directionChanged($event)"
+    class="scratch" aria-label="Local direction preview">
+    <p>Logical start edge · <bdi>Product 1</bdi> · logical end edge</p>
+    <label for="cdk-scratch-note">Fictional scratch note (240 characters maximum)</label>
+    <textarea #scratch id="cdk-scratch-note" cdkTextareaAutosize [cdkAutosizeMinRows]="2"
+      [cdkAutosizeMaxRows]="6" maxlength="240" [value]="note()" (input)="editNote(scratch.value)"></textarea>
+  </section>
+  <p>Nearest <code>Directionality</code>: <strong data-effective-direction>{{ effectiveDirection() }}</strong> ·
+    Latest <code>dirChange</code>: <strong data-direction-event>{{ directionEvent() ?? 'none yet' }}</strong></p>
+  <p data-breakpoint>Viewport observation: {{ narrowViewport() ? '600px or narrower' : 'wider than 600px' }}.
+    Resize to observe <code>BreakpointObserver</code>; CSS still handles wrapping and layout.</p>
+  <div class="controls">
+    <button #focusTarget type="button" aria-describedby="cdk-focus-hint">Focus probe</button>
+    <button type="button" (click)="focusProgrammatically()">Focus probe programmatically</button>
+  </div>
+  <p id="cdk-focus-hint">Use Tab, click, touch or the programmatic button. Origin is a CDK observation,
+    not a reliable way to identify assistive technology.</p>
+  <p>Observed focus origin: <strong data-focus-origin>{{ focusOrigin() ?? 'not focused' }}</strong></p>
+  <label for="cdk-public-link">Public product link</label>
+  <input id="cdk-public-link" class="public-link" readonly [value]="link ?? ''" aria-describedby="cdk-public-link-hint">
+  <p id="cdk-public-link-hint">Only the allowlisted root-relative route <code>/products/1</code>, made
+    absolute using this page's HTTP(S) origin. No current query, fragment, session value or scratch text is copied.</p>
+  <button type="button" (click)="copyPublicLink()">Copy public product link</button>
+  <p data-copy-result>{{ copyResult() }}</p>
+  <h3>CDK mechanism</h3>
+  <p><code>Dir</code> provides the preview's <code>Directionality</code> and emits <code>dirChange</code>.
+    <code>CdkTextareaAutosize</code> measures content between two and six rows. <code>FocusMonitor.monitor</code>
+    observes the real button; destruction unsubscribes and calls <code>stopMonitoring</code>.</p>
+  <p><code>Clipboard.copy</code> returns a boolean. <code>LiveAnnouncer</code> announces the result once
+    per action, while the same visible text has no duplicate live-region role. Its component scope cleans
+    up pending announcements on switching. No HTTP is needed for any experiment.</p>
+  <h3>Common mistake</h3>
+  <p>Copying the current URL can leak query/fragment data. Assuming clipboard success hides browser denial.
+    RTL preview is not translation or a saved application setting. Unsubscribing from FocusMonitor alone
+    does not stop monitoring the element.</p>
+  <h3>Revision question</h3>
+  <p>Why does the scratch direction not affect the toolbar? Why must clipboard failure remain visible
+    even if live announcement fails too?</p>
+  <h3>Test observation</h3>
+  <p>Tests mock the public Clipboard and LiveAnnouncer services, never the OS clipboard. They verify
+    failure/success announcements, local direction outputs, real focus monitoring cleanup, bounded autosize
+    settings and breakpoint teardown. Browser permission and full keyboard/screen-reader audits remain separate.</p>
+</article>

@@ -1,0 +1,54 @@
+<a class="skip-link" href="#main-content" (click)="skipToContent($event)">Skip to content</a>
+<mat-sidenav-container class="shell">
+  <mat-sidenav id="learning-navigation" class="sidebar" [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="drawerOpen()" [fixedInViewport]="true" [autoFocus]="isMobile()"
+    (openedChange)="onDrawerOpenedChange($event)" (closed)="onDrawerClosed()">
+    <a class="brand" routerLink="/dashboard" aria-label="Learning Store dashboard">
+      <span class="brand-mark" aria-hidden="true">A<span>22</span></span>
+      <span>Learning Store<small>ANGULAR WORKSPACE</small></span>
+    </a>
+    <p class="nav-caption eyebrow">Your workspace</p>
+    <nav class="module-navigation" aria-label="Learning modules">
+      <a routerLink="/dashboard" routerLinkActive="active-link" ariaCurrentWhenActive="page">
+        Overview
+      </a>
+      @for (module of modules; track module.id) {
+        <a [routerLink]="module.path" routerLinkActive="active-link" ariaCurrentWhenActive="page">
+          {{ module.title }}
+        </a>
+      }
+    </nav>
+    <div class="sidebar-note">
+      <span class="eyebrow">Learn by building</span>
+      <p>One module.<br>One concept at a time.</p>
+      <span class="muted">Angular 22 · Material 3</span>
+    </div>
+  </mat-sidenav>
+    <!-- Match the known side width on first render, before Material's measured margin.
+      The mobile overlay never reserves inline space. -->
+    <mat-sidenav-content [style.margin-left]="isMobile() ? '0px' : 'var(--sidebar-width)'">
+    <header>
+      <mat-toolbar class="toolbar">
+        @if (isMobile()) {
+          <button class="toolbar-action" type="button" (click)="toggleNavigation()"
+            aria-controls="learning-navigation" [attr.aria-expanded]="drawerOpen()" aria-label="Menu: toggle navigation">Menu</button>
+        }
+        <span class="toolbar-label">Build. Understand. Revise.</span>
+        <span class="toolbar-spacer"></span>
+        <label class="theme-control">Theme
+          <select #themeSelect [value]="theme.preference()" (change)="theme.setPreference(themeSelect.value)">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+        <a class="toolbar-action" routerLink="/cart" [attr.aria-label]="'Cart, ' + cartCount() + ' items'">Cart ({{ cartCount() }})</a>
+        <a class="toolbar-action session-link" routerLink="/login" [attr.aria-label]="session.user() ? 'Manage demo session for ' + session.user()?.username : 'Demo session'">{{ session.user() ? 'Session active' : 'Demo session' }}</a>
+      </mat-toolbar>
+    </header>
+    <main #main id="main-content" tabindex="-1">
+      <router-outlet />
+    </main>
+    <footer>Angular 22 Learning Store <span>Learning project · No real purchases</span></footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>

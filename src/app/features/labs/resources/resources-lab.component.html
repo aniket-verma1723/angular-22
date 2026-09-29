@@ -1,0 +1,62 @@
+<header>
+  <p class="eyebrow">P09 · asynchronous reads</p>
+  <h1 tabindex="-1">Resources comparison lab</h1>
+  <p>One product detail, four real implementations, only one active reader.</p>
+  <p><strong>Public read mode: {{ mode === 'mock' ? 'local mock' : 'remote demo' }}.</strong>
+    No sign-in, writes, automatic retries, shared cache, or persistence. The data mode is chosen at bootstrap.</p>
+</header>
+<section aria-labelledby="resource-concept-heading">
+  <h2 id="resource-concept-heading">Concept</h2>
+  <p>Resources combine asynchronous reads with synchronous signal views. HttpClient + RxJS offers explicit stream composition;
+    httpResource is HTTP-specific; rxResource adapts observables; resource uses a promise or async loader.</p>
+  <p>All four validate the same unknown product detail and expected ID, omit credentials, disable transfer cache,
+    and bound reads to 15 seconds. No null product is treated as a successful empty result.</p>
+</section>
+<section aria-labelledby="resource-try-heading">
+  <h2 id="resource-try-heading">Try it</h2>
+  <label for="resource-variant">Read variant</label>
+  <select #variantControl id="resource-variant" [value]="variant()" (change)="choose(variantControl.value)"
+    [attr.aria-invalid]="selectionError()"
+    [attr.aria-describedby]="selectionError() ? 'resource-variant-hint resource-variant-error' : 'resource-variant-hint'">
+    <option value="rxjs">HttpClient + RxJS / toSignal</option>
+    <option value="httpResource">httpResource</option>
+    <option value="rxResource">rxResource</option>
+    <option value="resource">resource (promise loader)</option>
+  </select>
+  <p id="resource-variant-hint">Changing variant destroys the previous owner, clears its selected ID and starts idle.
+    Predict whether Load, Reload, editing the draft, and Clear will send a request before trying them.</p>
+  @if (selectionError()) {
+    <p id="resource-variant-error" role="alert">Choose one of the four read variants.</p>
+  }
+  @switch (variant()) {
+    @case ('rxjs') { <app-resource-experiment variant="rxjs" /> }
+    @case ('httpResource') { <app-resource-experiment variant="httpResource" /> }
+    @case ('rxResource') { <app-resource-experiment variant="rxResource" /> }
+    @case ('resource') { <app-resource-experiment variant="resource" /> }
+  }
+</section>
+<section aria-labelledby="resource-angular-heading">
+  <h2 id="resource-angular-heading">What Angular does</h2>
+  <h3>{{ lesson().title }}</h3>
+  <p>{{ lesson().mechanism }}</p>
+  <p>{{ lesson().use }}</p>
+  <p>Resource value reads are guarded by hasValue(). New IDs clear the prior value; same-ID reload retains it
+    with a stale label until the new read resolves. Repeated same-ID actions while busy do not overlap.
+    Clear cancels the pending read and returns to idle. Destroying the active view cancels its work.</p>
+</section>
+<section aria-labelledby="resource-mistake-heading">
+  <h2 id="resource-mistake-heading">Common mistake</h2>
+  <p>{{ lesson().mistake }}</p>
+  <p>Reactive loaders are not durable write queues. Cancellation does not prove server rollback, and locally setting
+    a resource value would not persist a product. This lab offers reads only.</p>
+</section>
+<section aria-labelledby="resource-revision-heading">
+  <h2 id="resource-revision-heading">Revision question</h2>
+  <p>{{ lesson().question }}</p>
+  <h3>Test observation</h3>
+  <p>Load 1, reload it, then load 2. Clear during a slow read or switch variant: the old result must never appear.
+    Try 999 in local mock mode for a missing-record error, then retry or recover with 1.</p>
+  <p>Colocated HTTP-backend tests cover errors, invalid responses, identity mismatch, timeout, reload and destruction.
+    Existing mock scenario delays can exercise slow reads in tests; there is no runtime failure panel.
+    Mock interception need not appear as a browser network request. See blueprint §7.4 for the comparison curriculum.</p>
+</section>

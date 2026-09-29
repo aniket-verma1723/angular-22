@@ -1,0 +1,41 @@
+<article aria-labelledby="overlay-lesson-title">
+  <h2 id="overlay-lesson-title">Overlay and portal lifetime</h2>
+  <h3>Concept</h3>
+  <p>An overlay positions a floating host; a portal supplies its Angular view. Neither supplies a
+    complete dialog workflow. This is a small mechanism experiment, not a replacement for Material Dialog.</p>
+  <h3>Try it</h3>
+  <p>Open help, Tab and Shift+Tab around its two buttons, then close with Escape or the backdrop.
+    Predict where focus returns. Close before using the experiment selector: the modal blocks
+    background interaction. Tests also model navigation away while help is still open.</p>
+  <button #trigger type="button" aria-haspopup="dialog" [attr.aria-expanded]="isOpen()"
+    [attr.aria-controls]="isOpen() ? 'cdk-portal-help' : null" (click)="open(trigger)">Open portal help</button>
+  <p data-overlay-state>Overlay: {{ isOpen() ? 'attached' : 'disposed' }}</p>
+  <h3>CDK mechanism</h3>
+  <p><code>Overlay.create</code> attaches a real <code>TemplatePortal</code>. A global position strategy
+    centers this modal; <code>scrollStrategies.block()</code> prevents page scroll. A connected,
+    nonmodal help popover would instead use a connected position and reposition scrolling.</p>
+  <p><code>FocusTrapFactory</code> supplies Tab boundaries. A cancellable <code>afterNextRender</code>
+    performs initial focus. Escape, backdrop and Close dispose the portal, trap and event subscriptions.</p>
+  <h3>Common mistake</h3>
+  <p>Positioning alone is not accessibility. Forgetting disposal leaves listeners alive; an old
+    asynchronous autofocus can steal focus from a newer view. Overlay content inherits root theme tokens,
+    not custom properties defined only on the launching component host.</p>
+  <h3>Revision question</h3>
+  <p>Why block scrolling here rather than reposition? Why must destruction not focus a disappearing trigger?</p>
+  <h3>Test observation</h3>
+  <p>Tests assert portal attachment, labelled dialog, initial focus, both trap boundaries, Escape/backdrop
+    restoration and no stale focus or overlay after replacement/destruction. Full screen-reader review remains manual.</p>
+</article>
+<ng-template #help>
+  <section id="cdk-portal-help" class="help-dialog" data-help-dialog role="dialog" aria-modal="true"
+    aria-labelledby="cdk-portal-help-title" aria-describedby="cdk-portal-help-description" tabindex="-1">
+    <h2 id="cdk-portal-help-title">Portal help</h2>
+    <p id="cdk-portal-help-description">This view lives in a CDK overlay. Tab stays inside;
+      Escape, Close help or the backdrop returns to the opener.</p>
+    <p data-help-acknowledged>{{ acknowledged() ? 'Help acknowledged. Closing destroys this view.' : 'No action has been acknowledged.' }}</p>
+    <div class="controls">
+      <button type="button" cdkFocusInitial (click)="acknowledge()">Acknowledge help</button>
+      <button type="button" (click)="close()">Close help</button>
+    </div>
+  </section>
+</ng-template>

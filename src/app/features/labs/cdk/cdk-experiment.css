@@ -1,0 +1,16 @@
+:host { display: block; min-width: 0; color: var(--mat-sys-on-surface, CanvasText); }
+article { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--mat-sys-outline-variant, GrayText);
+  border-radius: 1rem; background: var(--mat-sys-surface-container-low, Canvas); overflow-wrap: anywhere; }
+h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); }
+h2 { margin-block: .4rem 1rem; }
+h3 { font-size: 1rem; margin-block: 1rem .3rem; }
+p { line-height: 1.6; max-width: 80ch; }
+.controls { display: flex; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
+button { min-height: 44px; padding: .5rem .85rem; font: inherit; cursor: pointer;
+  color: var(--mat-sys-on-surface, CanvasText); background: var(--mat-sys-surface, Canvas);
+  border: 1px solid var(--mat-sys-outline, GrayText); border-radius: .5rem; }
+button[aria-pressed='true'] { background: var(--mat-sys-secondary-container, Highlight);
+  color: var(--mat-sys-on-secondary-container, HighlightText); border-width: 2px; }
+:is(button, input, textarea, [tabindex]):focus-visible { outline: 3px solid var(--mat-sys-primary, Highlight); outline-offset: 3px; }
+input, textarea { font: inherit; accent-color: var(--mat-sys-primary, Highlight); }
+code { overflow-wrap: anywhere; }

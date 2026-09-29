@@ -1,0 +1,46 @@
+<article aria-labelledby="virtual-lesson-title">
+  <h2 id="virtual-lesson-title">Virtual views, stable selection</h2>
+  <h3>Concept</h3>
+  <p>Virtual scrolling limits attached DOM, not downloaded records. All 1000 fictional people below
+    already exist locally. No API user data or production table is involved.</p>
+  <h3>Try it</h3>
+  <p>Select person 0001, jump to the last person, select it, then return. Predict the selection count
+    and the number of attached rows. Reset selection without resetting the viewport.</p>
+  <div class="controls">
+    <button type="button" (click)="jump('first')">Jump to first person</button>
+    <button type="button" (click)="jump('last')">Jump to last person</button>
+    <button type="button" (click)="resetSelection()">Reset local selection</button>
+  </div>
+  <p id="virtual-keyboard-help">Jump buttons retain focus. Tab into the list; use native scrolling keys
+    on its focusable viewport and Space on a checkbox. No custom arrow-key selection contract.</p>
+  <p>Total local rows: <strong data-total>{{ people.length }}</strong> ·
+    Rendered index range [start, end): <strong data-range>{{ range().start }}–{{ range().end }}</strong> ·
+    Observed attached row DOM count: <strong data-dom-count>{{ domCount() }}</strong> ·
+    Selected IDs: <strong data-selected-count>{{ selectedCount() }}</strong></p>
+  <cdk-virtual-scroll-viewport [itemSize]="rowHeight" [minBufferPx]="rowHeight * 2"
+    [maxBufferPx]="rowHeight * 4" role="list" aria-label="Fictional people"
+    aria-describedby="virtual-keyboard-help" tabindex="0">
+    <!-- CDK requires its structural repeater; @for cannot drive a virtual viewport. -->
+    <div *cdkVirtualFor="let person of people; let index = index; trackBy: trackPerson; templateCacheSize: 0"
+      class="person-row" data-person-row role="listitem" [attr.data-person-id]="person.id"
+      [style.height.px]="rowHeight" [attr.aria-posinset]="index + 1" [attr.aria-setsize]="people.length">
+      <label><input type="checkbox" [checked]="selected().has(person.id)" (change)="toggle(person)">
+        <span>{{ person.name }}</span></label>
+    </div>
+  </cdk-virtual-scroll-viewport>
+  <h3>CDK mechanism</h3>
+  <p><code>CdkVirtualScrollViewport</code>, the fixed-size strategy and <code>*cdkVirtualFor</code>
+    render 48px rows in a 288px viewport plus buffers. <code>renderedRangeStream</code> reports an
+    end-exclusive range; a post-render DOM read counts attached rows independently.</p>
+  <p><code>SelectionModel&lt;string&gt;</code> owns stable IDs outside virtual views; its change stream
+    publishes a read-only signal snapshot. Template caching is disabled here to make destruction obvious.</p>
+  <h3>Common mistake</h3>
+  <p>Checkbox/view identity is not selection storage. Variable row height breaks fixed-size offsets.
+    Virtualizing one remote page neither fetches missing pages nor makes its page-local count a server total.</p>
+  <h3>Revision question</h3>
+  <p>Why can selected IDs outnumber attached checkboxes? Which costs still grow with all 1000 local records?</p>
+  <h3>Test observation</h3>
+  <p>Tests compare a finite row DOM count with the actual CDK range, exercise both jumps, retain IDs across
+    destroyed views, and verify reset and experiment-lifetime boundaries. Virtualization limits browser find
+    and assistive-technology traversal to rendered content; it is not a universal replacement for pagination.</p>
+</article>

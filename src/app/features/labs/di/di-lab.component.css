@@ -1,0 +1,9 @@
+:host { display: block; max-width: 68rem; margin: auto; color: var(--mat-sys-on-surface); }
+header, section { margin-block-end: 1.25rem; }
+section { padding: clamp(.75rem, 3vw, 1.5rem); border: 1px solid var(--mat-sys-outline); border-radius: 1rem; background: var(--mat-sys-surface-container-low); }
+h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); } h3 { font-size: 1rem; margin-bottom: .25rem; }
+p, dd { overflow-wrap: anywhere; line-height: 1.6; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+button, a { font: inherit; color: inherit; } button { min-height: 44px; padding: .5rem .8rem; border: 1px solid currentColor; border-radius: .5rem; background: var(--mat-sys-surface); cursor: pointer; }
+button:disabled { opacity: .6; cursor: default; } :is(button, a):focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 3px; }
+#scope-results { margin-top: 1rem; }

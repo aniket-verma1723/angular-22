@@ -1,0 +1,92 @@
+<h1 tabindex="-1">Signal Forms comparison</h1>
+<app-forms-lesson concept="One signal model, a schema and a field tree own this isolated product-like draft."
+  exercise="Fill sample, then edit the title and Tab away. Resolve availability. Try reserved or demo, reversed dates and duplicate notes."
+  mechanism="debounce(title, 'blur') buffers UI input; validateAsync uses rxResource and cancels replaced subscriptions. FormValueControl and FormCheckboxControl are distinct contracts."
+  mistake="Do not copy this draft into a second Reactive Form, or mistake disabled fields for removed model properties."
+  question="Why can invalid() be false while valid() is also false? What commits a buffered title?" />
+
+<mat-card appearance="outlined"><mat-card-content>
+  <h2>Local product-like draft</h2>
+  <form novalidate (submit)="save($event)" [attr.aria-busy]="busy()">
+    <fieldset [disabled]="busy()">
+      <legend>Product exercise — never changes products or cart</legend>
+      <div class="grid">
+        <div><label>Title <input data-title [formField]="draftForm.title" [attr.aria-invalid]="draftForm.title().invalid()" aria-describedby="signal-title-error signal-title-hint"></label>
+          <p id="signal-title-hint">Title commits on blur. Local banned fixtures: reserved, demo (case-insensitive).</p>
+          <p class="error" id="signal-title-error">{{ error(draftForm.title) }}</p></div>
+        <div><label>Price (USD) <input type="number" step="0.01" [formField]="draftForm.price" [attr.aria-invalid]="draftForm.price().invalid()" aria-describedby="signal-price-error"></label>
+          <p class="error" id="signal-price-error">{{ error(draftForm.price) }}</p></div>
+        <div><app-signal-stock-control [formField]="draftForm.stock" errorId="signal-stock-error" />
+          <p class="error" id="signal-stock-error">{{ error(draftForm.stock) }}</p></div>
+        <div><label>Category <input [formField]="draftForm.category" list="signal-categories" [attr.aria-invalid]="draftForm.category().invalid()" aria-describedby="signal-category-error"></label>
+          <datalist id="signal-categories"><option value="groceries"></option><option value="beauty"></option><option value="furniture"></option></datalist>
+          <p class="error" id="signal-category-error">{{ error(draftForm.category) }}</p></div>
+        <label>Disabled reference <input [formField]="draftForm.reference"></label>
+      </div>
+      <fieldset>
+        <legend>Nested scheduling</legend>
+        <label class="check"><input type="checkbox" [formField]="draftForm.schedule.enabled"> Enable local schedule</label>
+        <p>Calendar strings, not UTC instants. Off disables (but preserves) dates and acknowledgement.</p>
+        <div class="grid">
+          <div><label>Start date <input type="date" [formField]="draftForm.schedule.start" [attr.aria-invalid]="draftForm.schedule.start().invalid()" aria-describedby="signal-start-error"></label>
+            <p class="error" id="signal-start-error">{{ error(draftForm.schedule.start) }}</p></div>
+          <div><label>End date <input type="date" [formField]="draftForm.schedule.end" [attr.aria-invalid]="draftForm.schedule.end().invalid()" aria-describedby="signal-end-error"></label>
+            <p class="error" id="signal-end-error">{{ error(draftForm.schedule.end) }}</p></div>
+        </div>
+        <app-signal-ack-control [formField]="draftForm.schedule.acknowledged" errorId="signal-ack-error" />
+        <p class="error" id="signal-ack-error">{{ error(draftForm.schedule.acknowledged) }}</p>
+      </fieldset>
+      <fieldset aria-describedby="signal-notes-error">
+        <legend>Notes (maximum three, distinct text)</legend>
+        @for (note of draftForm.notes; track note; let index = $index) {
+          <div class="note"><label>Note {{ index + 1 }} <input [formField]="note.text" [attr.aria-invalid]="note.text().invalid() || draftForm.notes().errors().length > 0" [attr.aria-describedby]="'signal-notes-error signal-note-error-' + note.id().value()"></label>
+            <p class="error" [id]="'signal-note-error-' + note.id().value()">{{ error(note.text) }}</p>
+            <button mat-button type="button" (click)="removeNote(note.id().value())">Remove note {{ index + 1 }}</button></div>
+        }
+        <p class="error" id="signal-notes-error">{{ error(draftForm.notes) }}</p>
+        <button mat-button type="button" (click)="addNote()" [disabled]="draft().notes.length >= maxNotes || busy()">Add note</button>
+      </fieldset>
+      <fieldset aria-describedby="signal-annotations-error">
+        <legend>Optional record entry (label only)</legend>
+        @for (entry of draftForm.annotations; track entry[0]) {
+          <label>Annotation {{ entry[0] }} <input [formField]="entry[1]" [attr.aria-invalid]="entry[1]().invalid()" aria-describedby="signal-annotations-error"></label>
+        }
+        <p class="error" id="signal-annotations-error">{{ draftForm.annotations().touched() ? draftForm.annotations().errorSummary()[0]?.message : '' }}</p>
+        <button mat-button type="button" (click)="toggleAnnotation()">Toggle optional label</button>
+      </fieldset>
+    </fieldset>
+    <div class="actions">
+      <button mat-flat-button type="submit" [disabled]="!draftForm().valid() || busy() || leave.confirming()">Save local draft</button>
+      <button mat-button type="button" (click)="review()" [disabled]="busy()">Review errors</button>
+      <button mat-button type="button" (click)="sample()" [disabled]="busy() || leave.confirming()">Fill sample</button>
+      <button mat-button type="button" (click)="resetDraft()" [disabled]="busy() || leave.confirming()">Reset draft</button>
+    </div>
+  </form>
+</mat-card-content></mat-card>
+
+<mat-card appearance="outlined"><mat-card-content>
+  <h2>Controlled local responses</h2>
+  <p role="status">Validation pending: {{ draftForm().pending() }} · Save stage: {{ stage() }} · Dirty: {{ draftForm().dirty() }} · Touched: {{ draftForm().touched() }}</p>
+  <p data-signal-root-state>Root disabled: {{ draftForm().disabled() }} · Submitting: {{ draftForm().submitting() }}</p>
+  <p>No endpoint or timer. Resolve applies the small banned-name fixture, not a real uniqueness guarantee.</p>
+  @for (request of availability.requests(); track request.id) {
+    <p>Request {{ request.id }}: {{ request.title }}</p>
+    <div class="actions">
+      <button mat-button type="button" (click)="availability.resolve(request.id)">Resolve availability {{ request.id }}</button>
+      <button mat-button type="button" (click)="availability.fail(request.id)">Fail availability {{ request.id }}</button>
+    </div>
+  }
+  <p>Cancelled checks: {{ availability.cancellations() }}</p>
+  <button mat-button type="button" (click)="draftForm.title().reloadValidation()" [disabled]="busy() || draftForm.title().pending()">Retry availability</button>
+  <div class="actions">
+    <button mat-button type="button" (click)="completeSave(true)" [disabled]="stage() !== 'saving'">Complete success</button>
+    <button mat-button type="button" (click)="completeSave(false)" [disabled]="stage() !== 'saving'">Fail response</button>
+  </div>
+  @if (stage() === 'failure') { <p role="alert">Local save failed. Draft preserved. Resolve any renewed availability check, then retry.</p> }
+  @if (stage() === 'success') { <p role="status">Local simulation complete. Draft cleared; nothing persisted.</p> }
+  <p role="status">{{ notice() }} {{ leave.message() }}</p>
+  <h3>Model includes disabled fields</h3><pre>{{ draft() | json }}</pre>
+  <p>Buffered title: {{ draftForm.title().controlValue() }} · Committed title: {{ draft().title }}</p>
+</mat-card-content></mat-card>
+
+<app-forms-core-lessons />

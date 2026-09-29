@@ -16,9 +16,7 @@
             "outputPath": "dist/angular-22",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
@@ -27,6 +25,7 @@
               }
             ],
             "styles": [
+              "src/theme.scss",
               "src/styles.css"
             ],
             "scripts": []
@@ -51,6 +50,17 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "mock": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/app/core/config/app-data.providers.ts",
+                  "with": "src/app/core/config/app-data.providers.mock.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -63,6 +73,9 @@
             },
             "development": {
               "buildTarget": "angular-22:build:development"
+            },
+            "mock": {
+              "buildTarget": "angular-22:build:mock"
             }
           },
           "defaultConfiguration": "development"
@@ -85,12 +98,39 @@
               }
             ],
             "styles": [
+              "src/theme.scss",
               "src/styles.css"
             ],
             "scripts": []
           }
         }
       }
+    }
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
     }
   }
 }

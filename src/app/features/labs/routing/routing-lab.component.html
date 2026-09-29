@@ -1,0 +1,54 @@
+<header><p>P09 · R01–R12</p><h1 tabindex="-1">Routing workbench</h1><a routerLink="/labs">All labs</a></header>
+<section aria-labelledby="navigation-heading">
+  <h2 id="navigation-heading">Nested navigation, guards and resolvers · R01–R07/R11</h2>
+  <h3>Concept</h3><p>These are real nested lazy routes with local fixtures. A resolver blocks activation; the already-active parent keeps the experiment controls available.</p>
+  <h3>Try it</h3><p>Select Controlled, open the other notebook, then complete or fail the pending resolver. Toggle permissions before trying a new URL.</p>
+  <nav aria-label="Routing experiments">
+    <a routerLink="workspace/1" routerLinkActive="active" ariaCurrentWhenActive="page">Notebook 1</a>
+    <a routerLink="workspace/2" routerLinkActive="active" ariaCurrentWhenActive="page">Notebook 2</a>
+    <a routerLink="workspace/1" [queryParams]="{ revision: 2 }" fragment="route-detail" [state]="{ labMarker: 'sample' }">Notebook 1, revision 2 + fragment + state</a>
+    <a routerLink="matched">canMatch route</a><a routerLink="workspace/invalid">Invalid ID</a><a routerLink="workspace/999">Missing fixture</a>
+  </nav>
+  <label for="resolver-mode">Resolver mode</label>
+  <select id="resolver-mode" #mode [value]="session.mode()" (change)="session.setMode(mode.value)">
+    <option value="immediate">Immediate local fixture</option><option value="controlled">Controlled completion (15 s maximum)</option><option value="error">Immediate local error</option>
+  </select>
+  <div class="actions">
+    <button type="button" (click)="session.togglePermission()">Child permission: {{ session.permission() ? 'allowed' : 'denied' }}</button>
+    <button type="button" (click)="session.toggleMatch()">Matching: {{ session.matchAllowed() ? 'allowed' : 'denied' }}</button>
+    <button type="button" [disabled]="session.status() !== 'resolving'" (click)="session.release()">Complete resolver</button>
+    <button type="button" [disabled]="session.status() !== 'resolving'" (click)="session.fail()">Fail resolver</button>
+    <button type="button" [disabled]="session.status() !== 'resolving'" (click)="session.cancel()">Complete without data (cancel navigation)</button>
+  </div>
+  <p role="status">Resolver {{ session.status() }} · calls {{ session.calls() }} · {{ notice() }}</p>
+  <div class="outlet"><router-outlet /></div>
+  <h3>What Angular does</h3><p>canActivateChild gates workspace descendants; canMatch gates matching. ID validation precedes the resolver. Guards return redirect trees, and resolver errors return RedirectCommand to local recovery. pathParamsOrQueryParamsChange reruns the resolver for ID or query changes, but not fragment-only changes. The optional departure checkbox exercises functional canDeactivate without a modal.</p>
+  <p>withComponentInputBinding (already configured in this app) binds the actual detail's path ID, query revision and resolved fixture to input signals. Input transforms validate unknown values; the ID guard rejects invalid paths before resolution. Missing, duplicate or invalid revisions fall back to 1. ActivatedRoute remains only for title and fragment observations; there is no duplicate writable URL model.</p>
+  <h3>Common mistake</h3><p>These switches are local learning permissions, not authentication or server authorization. A missing fixture is not an unknown route. Do not wait for a noncritical widget in a resolver.</p>
+  <h3>Revision question</h3><p>Which view remains interactive while a child resolver is pending? Why does the recovery route sit outside the guarded workspace?</p>
+  <p><strong>Test observation:</strong> harness specs exercise completion/error/cancellation, redirects, invalid IDs, query reruns and departure blocking with no HTTP.</p>
+</section>
+<section aria-labelledby="advanced-heading">
+  <h2 id="advanced-heading">Named outlets, matching and default reuse · R10</h2>
+  <h3>Concept</h3><p>A named outlet can coexist with the primary route. Default reuse retains a component for the same route configuration with different parameters.</p>
+  <h3>Try it</h3><p>Type a local note, switch IDs and compare the instance number. Open help, close it, then leave the notebook and return.</p>
+  <button type="button" #helpButton (click)="toggleHelp()" [attr.aria-expanded]="help()" aria-controls="routing-help">{{ help() ? 'Close' : 'Open' }} help outlet</button>
+  <aside id="routing-help" aria-label="Route help"><router-outlet name="help" (activate)="setHelp(true)" (deactivate)="setHelp(false)" /></aside>
+  <nav aria-label="Custom matcher experiments"><a routerLink="recipe/signals">Allowed signals recipe</a><a routerLink="recipe/di">Allowed DI recipe</a><a routerLink="recipe/unknown">Rejected recipe</a><a routerLink="unknown/path">Local wildcard</a></nav>
+  <p>Active detail instances {{ session.active() }} · destroyed details {{ session.destroyedDetails() }}</p>
+  <h3>What Angular does</h3><p>The custom matcher accepts exactly recipe/signals or recipe/di without matrix parameters. Closing help removes only the named outlet and restores its control focus. Detail DestroyRef and toSignal subscriptions end on departure, not an ID change.</p>
+  <h3>Common mistake</h3><p>No custom reuse cache exists here. Route configuration injectors can persist beyond a component. Parent-view departure cancels active work and resets interactive permissions and resolver mode, so revisiting cannot block before the controls appear. Child parameter changes preserve configuration.</p>
+  <h3>Revision question</h3><p>Why does a note survive parameter changes but disappear after leaving and returning?</p>
+  <p><strong>Test observation:</strong> instance identity, teardown, named-outlet close and matcher allowlist have real-router assertions.</p>
+</section>
+<section aria-labelledby="events-heading">
+  <h2 id="events-heading">Navigation observation and optional policies · R03/R08/R09/R12</h2>
+  <h3>Concept</h3><p>URLs carry shareable path/query/fragment state; navigation extras belong to a history entry. The default title strategy selects the deepest primary route title.</p>
+  <h3>Try it</h3><p>Use the revision link, then browser Back/Forward. Observe the route title, fragment and safe history marker. Reload or share the URL: a marker is not a durable data contract.</p>
+  <p>History marker (allowlisted): {{ marker() }}</p>
+  <ol aria-label="Last twelve router events">@for (entry of logs(); track entry) { <li>{{ entry }}</li> } @empty { <li>No observed events yet.</li> }</ol>
+  <h3>What Angular does</h3><p>The component observes at most twelve event IDs/types with destruction-bound teardown, never logs arbitrary URLs or state objects. Existing application scrolling handles anchors and history positions; local tests isolate the router and mock history. Pixel scroll restoration remains a browser check, not implied by URL tests.</p>
+  <h3>Common mistake</h3><p>Do not preload every advanced lab. This feature installs neither a global preload strategy nor view transitions. View transitions are developer preview in the installed declarations; reduced-motion-aware comparison and performance measurements remain optional P11 work.</p>
+  <h3>Revision question</h3><p>Which state survives copying a URL? Why is opening an auxiliary help route not a new primary title?</p>
+  <p><strong>Test observation:</strong> bounded event logs, title, fragment/query/state restoration and destroyed-view observation are covered. No global router policy, Eager/Zone setting or history cache is changed.</p>
+</section>

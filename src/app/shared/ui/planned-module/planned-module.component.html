@@ -1,0 +1,13 @@
+<p class="eyebrow muted">{{ plan().id }} · {{ plan().phase }}</p>
+<h1 tabindex="-1">{{ heading() }}</h1>
+<p class="introduction muted">{{ plan().description }}</p>
+<mat-card appearance="outlined">
+  <mat-card-content>
+    <span class="status-label">Planned module · Not implemented yet</span>
+    <h2>Your next learning goals</h2>
+    <ul>@for (topic of plan().topics; track topic) { <li>{{ topic }}</li> }</ul>
+    <p class="muted">This lazy-loaded page is a foundation placeholder. There are no API calls, saved records or working business actions here yet.</p>
+    <p class="muted">Follow this module in <code>ANGULAR_22_LEARNING_PROJECT.md</code> before implementation.</p>
+  </mat-card-content>
+</mat-card>
+<a mat-button routerLink="/dashboard">Back to overview</a>

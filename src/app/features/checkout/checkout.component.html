@@ -1,0 +1,94 @@
+<a mat-button routerLink="/cart">Back to cart</a>
+<header><p class="eyebrow muted">M04 / P06 · Typed Reactive Forms</p><h1 tabindex="-1">Checkout</h1>
+  <p>Fictional details only. No payment, shipment or real order will be created.</p>
+  <p class="muted">{{ mode === 'mock' ? 'Local mock receipt simulation' : 'Remote DummyJSON · simulated receipt, not saved' }} · @if (session.user(); as user) { Demo user {{ user.id }} · {{ user.username }}. } No real authorization or purchase.</p></header>
+@if (!session.user()) { <p role="alert">Your demo session ended. The draft is kept, but a new submission requires sign-in.</p><a mat-button routerLink="/login" [queryParams]="{ returnUrl: '/checkout' }">Sign in again</a> }
+<p role="alert">{{ message() }}</p>
+@let current = state();
+@if (current.status === 'success') {
+  <mat-card appearance="outlined" class="receipt"><mat-card-content>
+    <h2 id="receipt-heading" tabindex="-1">Your simulated receipt</h2>
+    <p role="status">Checkout simulation succeeded. {{ current.cartCleared ? 'The submitted cart was cleared.' : 'The cart changed during submission and has been kept. Review it before submitting again.' }}</p>
+    <p>{{ current.result.source === 'mock' ? 'Mock' : 'Remote demo' }} receipt {{ current.result.receipt.id }} · Demo user {{ current.result.receipt.userId }} · {{ current.result.receipt.totalQuantity }} items</p>
+    <ul>@for (line of current.result.receipt.lines; track line.id) { <li>{{ line.title }} × {{ line.quantity }} <strong>{{ line.totalCents | usdCents }}</strong></li> }</ul>
+    <dl><div><dt>Submitted cart snapshot</dt><dd>{{ current.snapshotCents | usdCents }}</dd></div>
+      <div><dt>Service subtotal</dt><dd>{{ current.result.receipt.subtotalCents | usdCents }}</dd></div>
+      <div><dt>Service total after discounts</dt><dd>{{ current.result.receipt.discountedTotalCents | usdCents }}</dd></div></dl>
+    @if (current.snapshotCents !== current.result.receipt.subtotalCents) { <p>Service prices differ from the first-add cart snapshots. Both amounts are shown; nothing was charged.</p> }
+    <p>No shipping or tax is added here. The service may calculate its own discounts. This receipt is not a persisted order and has no retrieval link. Leaving or reloading loses it. Fictional form details were not sent and have been cleared.</p>
+    <a mat-flat-button routerLink="/products">Continue browsing</a><a mat-button routerLink="/cart">View cart</a>
+  </mat-card-content></mat-card>
+} @else if (!cart.lines().length && !busy()) {
+  <mat-card appearance="outlined"><mat-card-content><h2>Your cart is empty</h2><p>Add products before trying checkout.</p>
+    <a mat-flat-button routerLink="/products">Browse products</a></mat-card-content></mat-card>
+} @else {
+  @if (current.status === 'error') {
+    <section role="alert"><h2>Checkout could not be confirmed</h2><p>{{ current.error.message }}</p>
+      <p>Your draft and cart were kept. No automatic retry occurred. A timeout or invalid response does not prove the service did nothing; check before explicitly retrying.</p>
+      @if (current.error.retryAfterSeconds !== null) { <p>Service guidance: wait {{ current.error.retryAfterSeconds }} seconds before retrying.</p> }
+    </section>
+  }
+  @if (busy()) { <p role="status">Creating a simulated receipt… Please wait before leaving.</p> }
+  <div class="checkout-layout">
+    <form [formGroup]="form" (ngSubmit)="placeOrder()" [attr.aria-busy]="busy()" aria-label="Fictional checkout" autocomplete="off">
+      <mat-stepper orientation="vertical" linear animationDuration="0ms" aria-label="Checkout steps">
+        <ng-template matStepperIcon="edit" let-index="index">{{ index + 1 }}</ng-template>
+        <ng-template matStepperIcon="done"><span aria-hidden="true">✓</span></ng-template>
+        <mat-step [stepControl]="address" label="Fictional address" [editable]="!busy()">
+          <section data-step="0" formGroupName="address"><h2>Practice address</h2><p>Use made-up values, not personal information. These fields stay in memory on this page.</p>
+            <button mat-button type="button" [disabled]="busy()" (click)="useSample()">Use fictional sample</button>
+            <div class="fields">
+              <mat-form-field appearance="outline"><mat-label>Fictional recipient</mat-label><input matInput formControlName="recipient" maxlength="80" required />
+                <mat-error>Enter a non-blank fictional name (up to 80 characters).</mat-error></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Fictional street</mat-label><input matInput formControlName="street" maxlength="120" required />
+                <mat-error>Enter a non-blank fictional street (up to 120 characters).</mat-error></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Fictional city</mat-label><input matInput formControlName="city" maxlength="80" required />
+                <mat-error>Enter a non-blank fictional city (up to 80 characters).</mat-error></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Practice postal code</mat-label><input matInput formControlName="postalCode" inputmode="numeric" maxlength="5" required />
+                <mat-hint>Five digits, for example 00000. Not a real address check.</mat-hint><mat-error>Enter exactly five digits.</mat-error></mat-form-field>
+            </div>
+            <button mat-flat-button type="button" [disabled]="busy()" (click)="next(0)">Continue to delivery</button>
+          </section>
+        </mat-step>
+        <mat-step [stepControl]="delivery" label="Delivery practice" [editable]="!busy()">
+          <section data-step="1" formGroupName="delivery"><h2>Delivery options</h2><p>Both options are fictional, have no fee and are not sent to the service.</p>
+            <app-delivery-choice formControlName="method" [invalid]="delivery.controls.method.touched && delivery.controls.method.invalid"
+              [errorId]="delivery.controls.method.touched && delivery.controls.method.invalid ? 'delivery-error' : null" />
+            @if (delivery.controls.method.touched && delivery.controls.method.invalid) { <p id="delivery-error" role="alert">Choose a fictional delivery method.</p> }
+            <div formArrayName="notes">
+              @for (note of notes.controls; track note; let index = $index) {
+                <div class="note-row"><mat-form-field appearance="outline"><mat-label>Fictional delivery note {{ index + 1 }}</mat-label>
+                  <input matInput [id]="'delivery-note-' + index" [formControlName]="index" maxlength="120" required />
+                  <mat-error>Enter a non-blank note (up to 120 characters), or remove it.</mat-error></mat-form-field>
+                  <button mat-button type="button" [disabled]="busy()" [attr.aria-label]="'Remove note ' + (index + 1)" (click)="removeNote(index)">Remove</button></div>
+              }
+            </div>
+            <button mat-button id="add-note" type="button" [disabled]="busy() || notes.length >= maxNotes" (click)="addNote()">Add fictional note</button>
+            <p class="muted">Optional: up to {{ maxNotes }} notes. Added notes must be filled or removed.</p>
+            <div class="actions"><button mat-button matStepperPrevious type="button" [disabled]="busy()">Back to address</button>
+              <button mat-flat-button type="button" [disabled]="busy()" (click)="next(1)">Continue to review</button></div>
+          </section>
+        </mat-step>
+        <mat-step [stepControl]="review" label="Review simulation" [editable]="!busy()">
+          <section data-step="2" formGroupName="review"><h2>Review before sending</h2>
+            <p>{{ draft().address.recipient }} · {{ draft().address.street }}, {{ draft().address.city }}, {{ draft().address.postalCode }}</p>
+            <p>Fictional delivery: {{ draft().delivery.method }} · {{ draft().delivery.notes.length }} local notes</p>
+            <p>Only session demo user ID {{ session.user()?.id }} and the cart's product IDs/quantities are sent. Address, delivery and notes stay local. There are no payment fields.</p>
+            <mat-checkbox formControlName="acknowledged" [aria-describedby]="review.controls.acknowledged.touched && review.invalid ? 'acknowledgement-error' : ''">I understand this is a simulation, not a purchase.</mat-checkbox>
+            @if (review.controls.acknowledged.touched && review.invalid) { <p id="acknowledgement-error" role="alert">Acknowledge the simulation to continue.</p> }
+            <div class="actions"><button mat-button matStepperPrevious type="button" [disabled]="busy()">Back to delivery</button>
+              <button mat-flat-button type="submit" [disabled]="busy() || !session.user() || formStatus() !== 'VALID' || !cart.lines().length">{{ busy() ? 'Submitting…' : 'Create simulated receipt' }}</button></div>
+          </section>
+        </mat-step>
+      </mat-stepper>
+      <button mat-button type="button" [disabled]="busy()" (click)="resetDraft()">Reset checkout draft</button>
+    </form>
+    <mat-card appearance="outlined" class="summary"><mat-card-content><h2>Cart snapshot</h2>
+      <ul>@for (line of cart.lines(); track line.productId) { <li>{{ line.title }} × {{ line.quantity }} <strong>{{ line.unitPriceCents * line.quantity | usdCents }}</strong></li> }</ul>
+      <p>{{ cart.itemCount() }} items · <strong>{{ cart.subtotalCents() | usdCents }}</strong></p>
+      <p class="muted">First-add prices, no discounts or shipping. The receipt shows the service's independently calculated totals; mock checkout uses current mock prices and checks current stock without reserving it.</p>
+    </mat-card-content></mat-card>
+  </div>
+}
+<aside class="learning-note muted"><h2>Compare the form contracts</h2><p>P05 binds a Signal Forms field tree. Here, typed FormGroup/FormArray controls own the draft. The delivery ControlValueAccessor receives writeValue/setDisabledState and reports change/touched without echoing programmatic writes. P04's quantity model is a component binding, not a form control.</p>
+  <p>Review reads getRawValue() so disabled values are explicit. No parallel writable signal model, address storage or automatic write retry is used. Leaving discards the form; the cart survives unless a matching submission succeeds.</p></aside>

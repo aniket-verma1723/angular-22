@@ -1,0 +1,63 @@
+<div class="page-heading">
+  <p class="eyebrow muted">Your Angular 22 learning path</p>
+  <span class="status-label">P12 · zoneless application & notification lab</span>
+</div>
+<section class="hero" aria-labelledby="overview-heading">
+  <div>
+    <p class="eyebrow">A little theory. A lot of building.</p>
+    <h1 id="overview-heading" tabindex="-1">Understand Angular.<br><span>One module at a time.</span></h1>
+    <p class="hero-description">A hands-on workspace for signals, routing, forms and reactive data.
+      Build a demo store, explore the mechanics, then make the knowledge stick.</p>
+    <div class="hero-actions">
+      <a mat-flat-button routerLink="/products">Explore the first feature <span aria-hidden="true">→</span></a>
+      <a mat-button routerLink="/labs">Open Angular labs</a>
+      <a mat-button routerLink="/labs/rxjs">Try the RxJS recipes lab</a>
+      <a mat-button routerLink="/labs/component-state">Try the state lab</a>
+    </div>
+  </div>
+  <div class="concept-diagram" role="group" aria-label="Learning loop: read, build, observe, explain">
+    <div class="diagram-core">A<span>22</span></div>
+    <p><span>01</span> Read the concept</p>
+    <p><span>02</span> Build something small</p>
+    <p><span>03</span> Observe & test</p>
+    <p><span>04</span> Explain the why</p>
+  </div>
+</section>
+<section class="foundation" aria-labelledby="foundation-heading">
+  <div>
+    <p class="eyebrow muted">M00–M07 · Foundation through public tasks</p>
+    <h2 id="foundation-heading">Your workspace is taking shape.</h2>
+    <p class="muted">Browse products, build an anonymous cart and sign in for simulated checkout or local demo-admin editing. Session guards are navigation UX, not server authorization.</p>
+    <p class="muted">Public users, profiles, posts and comments retain their recorded verification. Public paged task CRUD, the bounded write queue and native local ordering retain their P08 verification; P10 adds snapshot-validated same-column pointer drag/drop.</p>
+    <p class="muted">P08 dashboard widgets and nine local RxJS recipes are implemented and verified within the recorded scope. No API requests are made before you select Load widgets; the RxJS recipes run locally.</p>
+    <p class="muted">P09 core labs are delivered: components, DI, state, routing, four resource readers and three forms comparisons. Advanced and awareness lessons remain separate; this is not full curriculum completion.</p>
+    <p class="muted">P10 adds three lazy labs: Material interactions and a complete local table, independent Signal single-date and Reactive range/time fixtures, and owned CDK overlay, virtual selection and utilities. Inputs are local experiments, not saved settings.</p>
+    <p class="muted">P11 full follow-up delivers animation, profiling and image lessons alongside defer and opt-in preloading. Explore reduced-motion cleanup, method versus computed work and reserved fill-image fallbacks. Selected local tools are configured: ESLint, Playwright, axe, bundle auditing and browser measurements. This is not full curriculum completion or accessibility, security or performance certification.</p>
+    <p class="muted">P12 enables zoneless application scheduling. The notification lab compares signals with markForCheck, including callback cancellation and cleanup. Zone.js remains test-only; Eager and OnPush are checking strategies, not schedulers.</p>
+    <p class="muted">Tasks are public: assignment and user filters are not session identity. Profile task links open the board, not a nested tab. Drag and native Move up/down send no HTTP for order; Completed still uses the PATCH queue. CDK does not supply keyboard dragging.</p>
+    <p class="muted">Configured: {{ dataModeLabel }}.</p>
+  </div>
+  <div class="next-step"><span class="eyebrow">Later milestones</span><strong>SSR, settings & advanced tracks</strong><span class="muted">Settings remain a placeholder: saved theme preferences, locale previews and global mock reset UI are deferred to settings/P14. Advanced lessons remain deferred; P13 SSR is next, followed by P14 settings.</span><a routerLink="/labs/zoneless">Open zoneless lab</a><a routerLink="/labs/performance">Open performance lab</a></div>
+</section>
+<app-dashboard-widgets />
+<section aria-labelledby="modules-heading">
+  <div class="section-heading">
+    <div><p class="eyebrow muted">The module map</p><h2 id="modules-heading">Small steps. Real understanding.</h2></div>
+    <span class="muted">{{ modules.length }} feature areas · catalogue, cart, checkout, session, public reads & tasks ready · P10 Material/CDK implemented · P11 full quality/performance lessons implemented · P12 zoneless implemented · SSR, settings and advanced lessons deferred</span>
+  </div>
+  <div class="module-grid">
+    @for (module of modules; track module.id) {
+      <mat-card appearance="outlined" class="module-card">
+        <mat-card-content>
+          <div class="card-meta"><span class="module-number">{{ module.id }}</span><span class="status-label">{{ module.id === 'M02' ? 'Browsing & editing ready' : module.id === 'M03' ? 'Session cart ready' : module.id === 'M04' ? 'Simulated checkout ready' : module.id === 'M05' ? 'Demo session ready' : module.id === 'M06' ? 'Public reads ready' : module.id === 'M07' ? 'Tasks ready · P10 local drag/drop' : module.id === 'M09' ? 'P10–P12 labs implemented · advanced lessons later' : 'Planned' }}</span></div>
+          <h3>{{ module.title }}</h3>
+          <p class="muted">{{ module.description }}</p>
+          <p class="phase">{{ module.phase }}</p>
+        </mat-card-content>
+        <mat-card-actions><a mat-button [routerLink]="module.path" [attr.aria-label]="'View module: ' + module.title">View module <span aria-hidden="true">↗</span></a></mat-card-actions>
+      </mat-card>
+    }
+  </div>
+</section>
+<aside class="demo-note"><strong>A safe place to experiment.</strong> This is a learning project, not a real shop.
+  Remote writes are simulated; local mock product and task changes last until reset or reload. Checkout receipts are not stored orders.</aside>

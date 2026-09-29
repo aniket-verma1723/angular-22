@@ -1,0 +1,38 @@
+<app-material-lesson [lesson]="lesson">
+  <mat-form-field appearance="outline">
+    <mat-label>Fictional subject</mat-label>
+    <input matInput [formControl]="subject" [matAutocomplete]="subjects" autocomplete="off">
+    <mat-autocomplete #subjects="matAutocomplete">
+      @for (name of filteredSubjects(); track name) {
+        <mat-option [value]="name">{{ name }}</mat-option>
+      }
+      @if (filteredSubjects().length === 0) {
+        <mat-option disabled>No matching fictional subjects</mat-option>
+      }
+    </mat-autocomplete>
+    <mat-hint>Choose Aurora, Comet or Orbit. Nothing is fetched.</mat-hint>
+    <mat-error>Choose an exact subject from the local allowlist.</mat-error>
+  </mat-form-field>
+  <p id="material-activities-label">Practice activities</p>
+  <mat-chip-listbox aria-labelledby="material-activities-label" multiple [formControl]="activities">
+    <mat-chip-option value="Read">Read</mat-chip-option>
+    <mat-chip-option value="Practice">Practice</mat-chip-option>
+    <mat-chip-option value="Archived" disabled>Archived</mat-chip-option>
+  </mat-chip-listbox>
+  <div class="duration">
+    <label for="material-minutes">Practice minutes: {{ minuteValue() }}</label>
+    <mat-slider min="5" max="30" step="5" discrete>
+      <input matSliderThumb id="material-minutes" [formControl]="minutes">
+    </mat-slider>
+  </div>
+  <mat-slide-toggle [formControl]="captions">Show fictional captions</mat-slide-toggle>
+  <section class="preview" aria-label="Local choice preview">
+    <h4>Local preview</h4>
+    <p data-choice-summary>{{ selectedSubject() }} · {{ activityValue().join(', ') || 'No activities' }} · {{ minuteValue() }} minutes</p>
+    <p data-caption>{{ captionValue() ? 'Captions on: an imaginary sky above the observatory.' : 'Captions off in this preview.' }}</p>
+  </section>
+  <div class="controls">
+    <button mat-button type="button" (click)="toggleDisabled()">{{ locked() ? 'Enable choices' : 'Disable choices' }}</button>
+    <button mat-button type="button" (click)="reset()">Reset choices</button>
+  </div>
+</app-material-lesson>

@@ -1,0 +1,8 @@
+:host { display: block; min-width: 0; }
+p, caption { line-height: 1.6; }
+dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1rem; }
+dd { margin: 0; font-variant-numeric: tabular-nums; }
+table { width: 100%; border-collapse: collapse; }
+caption { text-align: start; padding-block: .75rem; }
+th, td { padding: .5rem; text-align: start; border-bottom: 1px solid var(--mat-sys-outline-variant, GrayText); }
+td { font-variant-numeric: tabular-nums; }

@@ -1,0 +1,8 @@
+:host { display: block; min-width: 0; max-width: 100%; }
+mat-form-field { width: 100%; margin-bottom: 1rem; }
+.controls { display: flex; flex-wrap: wrap; gap: .5rem; }
+.table-wrapper { max-width: 100%; overflow-x: auto; }
+table { width: 100%; }
+caption { padding: .75rem .5rem; text-align: start; font-weight: 600; }
+th, td { padding: .5rem; overflow-wrap: anywhere; }
+mat-paginator { max-width: 100%; }

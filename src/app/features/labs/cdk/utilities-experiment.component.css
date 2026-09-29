@@ -1,0 +1,7 @@
+.scratch { margin-block: 1rem; padding: 1rem; border-inline-start: 4px solid var(--mat-sys-primary, Highlight);
+  background: var(--mat-sys-surface-container, Canvas); text-align: start; }
+label { display: block; margin-block: .5rem; }
+textarea, .public-link { display: block; box-sizing: border-box; width: 100%; padding: .6rem;
+  border: 1px solid var(--mat-sys-outline, GrayText); border-radius: .4rem;
+  color: var(--mat-sys-on-surface, CanvasText); background: var(--mat-sys-surface, Canvas); }
+textarea { line-height: 1.5; }

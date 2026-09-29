@@ -1,0 +1,76 @@
+<header><p>P09 · S01–S09</p><h1 tabindex="-1">Reactive state workbench</h1><a routerLink="/labs">All labs</a></header>
+<section aria-labelledby="computed-heading">
+  <h2 id="computed-heading">Notifications and lazy computation · S01/S02/S07</h2>
+  <h3>Concept</h3><p>A private writable owner exposes readonly state and semantic actions. Computed values are lazy, memoized and depend only on signals read in the current branch.</p>
+  <h3>Try it</h3><p>Read twice, increment, read again. Disable the quantity branch, read, increment, then read. Finally compare a nested mutation and equal replacement.</p>
+  <div class="actions">
+    <button type="button" (click)="state.inspect()">Read computation observation</button>
+    <button type="button" (click)="state.increment()">Immutable quantity increment</button>
+    <button type="button" (click)="state.equalReplacement()">Replace with equal quantity</button>
+    <button type="button" (click)="state.mutateWithoutNotification()">Mutate nested fixture (deliberately wrong)</button>
+    <button type="button" (click)="state.toggleDependency()">{{ state.enabled() ? 'Disable' : 'Enable' }} quantity dependency</button>
+  </div>
+  @if (state.observation(); as observation) {
+    <p role="status">At last explicit read: total {{ observation.result }} · executions {{ observation.executions }} · raw quantity {{ observation.rawQuantity }}</p>
+  } @else { <p>Not evaluated yet.</p> }
+  <h3>What Angular does</h3><p>The template never reads the instrumented computed. Equal quantity objects do not invalidate it. With the branch disabled, quantity is no longer a dependency after the next read. Re-enable to read the current quantity.</p>
+  <h3>Common mistake</h3><p>Readonly signals do not deeply freeze objects. A mutation can leave a cached total stale. These new components use Angular 22's default OnPush; the existing root stays Eager. Both checking strategies are independent of P12's zoneless application scheduling. Events, changed inputs and template-read signals notify views; a plain mutation in an arbitrary callback does not. Event-triggered checking may mask mutation bugs, but cannot invalidate a computed cache.</p>
+  <h3>Revision question</h3><p>Why can raw quantity change while the cached total and execution count do not?</p>
+  <p><strong>Test observation:</strong> dependency removal, equality, stale mutation, immutable recovery and owner isolation have deterministic specs. No detach/detectChanges workaround is added. P12's application-wide zoneless migration is separate from this exercise.</p>
+</section>
+<app-notification-preview />
+<section aria-labelledby="linked-heading">
+  <h2 id="linked-heading">Selection and imperative preview · S03/S04</h2>
+  <h3>Concept</h3><p>linkedSignal lets a user select locally, then resets to the first option when its actual choices source changes. Selection controls the preview radius.</p>
+  <h3>Try it</h3>
+  <label for="state-choice">Preview choice</label>
+  <select id="state-choice" #choice [value]="state.selection()" (change)="state.choose(choice.value)">
+    @for (option of state.choices(); track option) { <option [value]="option">{{ option }}</option> }
+  </select>
+  <div class="actions">
+    <button type="button" (click)="state.replaceChoices()">Replace available choices</button>
+    <button type="button" (click)="changeNote()">Change incidental note</button>
+    <button type="button" (click)="toggle()" [attr.aria-expanded]="show()" aria-controls="state-integrations">{{ show() ? 'Destroy' : 'Recreate' }} integrations</button>
+    <button type="button" (click)="inspectPreview()">Read preview lifecycle</button>
+  </div>
+  <p>Selected {{ state.selection() }} · incidental note {{ note() }}</p>
+  <div id="state-integrations">
+    @if (show()) { <app-style-preview [radius]="state.radius()" [note]="'note ' + note()" /> }
+  </div>
+  @if (preview(); as result) { <p role="status">Last inspection: {{ result.runs }} effect runs · {{ result.cleanups }} cleanups · captured {{ result.incidentalNote }}</p> }
+  <h3>What Angular does</h3><p>The effect writes one owned CSS custom property through Renderer2, representing a third-party preview integration. Cleanup removes it before rerun and destruction. untracked reads the incidental note without subscribing. Counters are plain instrumentation inspected on demand, not reactive dependencies.</p>
+  <h3>Common mistake</h3><p>Do not copy derived selection into another signal using an effect. Prefer ordinary style bindings outside this intentional imperative integration.</p>
+  <h3>Revision question</h3><p>Does changing only the note rerun the effect? When is its newest value captured?</p>
+  <p><strong>Test observation:</strong> actual choice reset, DOM style, incidental dependency exclusion and cleanup are asserted.</p>
+</section>
+<section aria-labelledby="interop-heading">
+  <h2 id="interop-heading">State is not an event history · S05/S06</h2>
+  <h3>Concept</h3><p>toObservable observes stabilized state. Outputs represent individual child events. Each toSignal boundary is created once with an explicit initial value.</p>
+  <h3>Try it</h3>
+  <div class="actions">
+    <button type="button" (click)="state.batchThree()">Write 1 / 2 / 3 synchronously</button>
+    <button type="button" (click)="state.resetBatch()">Reset batch to 0</button>
+    <button type="button" (click)="state.emit('error')">Emit local failure</button>
+    <button type="button" (click)="state.emit('success')">Emit local success</button>
+  </div>
+  @if (show()) { <app-lab-event-source (counted)="recordTemplate($event)" /> }
+  <p>Current batch {{ state.batch() }} · last eight stabilized emissions {{ state.emissions().join(', ') }}</p>
+  <p role="status">{{ state.result() }}</p>
+  <p>Template output events: {{ templateEvents().join(', ') || 'none' }}</p>
+  <p>outputToObservable events: {{ observableEvents().join(', ') || 'none' }}</p>
+  <h3>What Angular does</h3><p>One synchronous burst publishes 3, not an event for every write. The child uses outputFromObservable over counted clicks; the parent receives the actual output both through a template and outputToObservable. Destruction ends subscriptions; recreation starts a new child count. Inner catchError preserves the next success intent.</p>
+  <h3>Common mistake</h3><p>Do not recreate toSignal in a getter or treat state stabilization as lossless event delivery.</p>
+  <h3>Revision question</h3><p>Which observation must retain each click, and which only needs the latest state?</p>
+  <p><strong>Test observation:</strong> burst stabilization, initial/error/recovery, real child events and destroyed-child/parent cleanup are covered.</p>
+</section>
+<section aria-labelledby="debounce-heading">
+  <h2 id="debounce-heading">Bounded local debounce · S09; S08 companion</h2>
+  <h3>Concept</h3><p>Angular 22.1.7 debounced is experimental, returning Resource&lt;T&gt;, not Signal&lt;T&gt;. It is not invoked here. This live comparison uses stable RxJS debounceTime with readonly toSignal output.</p>
+  <h3>Try it</h3><label for="debounce-text">Local preview text (40 characters)</label>
+  <input id="debounce-text" #text maxlength="40" [value]="state.text()" (input)="state.setText(text.value)">
+  <p>Immediate: {{ state.text() || '(empty)' }}</p><p role="status">After 250 ms quiet: {{ state.debouncedText() || '(empty)' }}</p>
+  <h3>What Angular does</h3><p>One stable boundary observes the latest text after a 250 ms quiet period and cancels its timer with the owner. No HTTP or polling occurs.</p>
+  <h3>Common mistake</h3><p>Debounce does not make a reactive loader suitable for durable writes. S08 resource variants belong to the <a routerLink="/labs/resources">companion resource lab</a>, not a duplicate implementation here.</p>
+  <h3>Revision question</h3><p>Why must you verify both stability and the return type before replacing an RxJS helper?</p>
+  <p><strong>Declaration/test reference:</strong> core/types/core.d.ts near line 9544: debounced(source, wait, options?): Resource&lt;T&gt;, experimental 22.0. Specs use fakeAsync virtual time, including replacement and teardown; no experimental runtime or wall-clock waits.</p>
+</section>

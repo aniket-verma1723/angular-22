@@ -1,10 +1,13 @@
+import { NgZone } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { appConfig } from './app.config';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: appConfig.providers,
     }).compileComponents();
   });
 
@@ -14,16 +17,23 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'angular-22' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('angular-22');
+  it('uses zoneless application scheduling even when Zone.js is loaded for legacy test clocks', () => {
+    expect(TestBed.inject(NgZone).run(() => NgZone.isInAngularZone())).toBeFalse();
   });
 
-  it('should render title', () => {
+  it('renders the learning shell and navigation landmark', async () => {
     const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, angular-22');
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('app-shell')).not.toBeNull();
+    expect(element.querySelector('nav[aria-label="Learning modules"]')).not.toBeNull();
+  });
+
+  it('provides a skip link and one main landmark', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelectorAll('main').length).toBe(1);
+    expect(element.querySelector('a[href="#main-content"]')?.textContent).toContain('Skip to content');
   });
 });

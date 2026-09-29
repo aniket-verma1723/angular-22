@@ -1,0 +1,7 @@
+:host { display: flex; min-width: 0; }
+.product-card { width: 100%; overflow: hidden; }
+app-product-image { margin: .75rem; }
+mat-card-content { flex: 1; }
+mat-card-actions { flex-wrap: wrap; gap: 8px; padding: 12px; }
+h2 { font-size: 1.15rem; line-height: 1.4; overflow-wrap: anywhere; }
+.price { font-size: 1.45rem; font-weight: 650; }

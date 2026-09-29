@@ -1,0 +1,7 @@
+:host { display: block; max-width: 850px; }
+.introduction { font-size: 1.1rem; margin-bottom: 2rem; }
+mat-card { margin-bottom: 1.5rem; }
+mat-card-content { padding: 1.5rem; }
+h2 { margin-top: 1.5rem; }
+li { padding-block: 0.5rem; }
+code { overflow-wrap: anywhere; }

@@ -1,0 +1,96 @@
+<header>
+  <p class="eyebrow muted">M05 / P07 · Demo session</p>
+  <h1 tabindex="-1">Your practice session</h1>
+  <p>Explore sign-in, verification and local roles — without a real account.</p>
+  <span class="status-label">{{ mode === 'mock' ? 'Local mock · no remote sign-in' : 'Remote demo · DummyJSON' }}</span>
+</header>
+<p role="status" class="notice">{{ notice() }}</p>
+@if (error()) {
+  <section #errorPanel class="error-panel" role="alert" tabindex="-1" aria-labelledby="session-error-heading">
+    <h2 id="session-error-heading">Session operation could not finish</h2>
+    <p>{{ error() }}</p>
+    <p>No automatic retry. To sign in again, re-enter the public demo password; your username is kept.</p>
+  </section>
+}
+<div class="session-layout">
+  <mat-card appearance="outlined"><mat-card-content>
+    @if (user(); as profile) {
+      <section aria-labelledby="session-summary-heading" [attr.aria-busy]="busy()">
+        <p class="eyebrow muted">Signed in · verified profile</p>
+        <h2 #summaryHeading id="session-summary-heading" tabindex="-1">Session summary</h2>
+        <dl>
+          <div><dt>Name</dt><dd>{{ profile.firstName }} {{ profile.lastName }}</dd></div>
+          <div><dt>Username</dt><dd>{{ profile.username }}</dd></div>
+          <div><dt>Demo user ID</dt><dd>{{ profile.id }}</dd></div>
+          <div><dt>Local practice role</dt><dd>{{ profile.role }}</dd></div>
+        </dl>
+        <p>The role controls local practice screens only. It does not grant server privileges.</p>
+        <div class="actions">
+          <a mat-flat-button [routerLink]="returnUrl()">Continue</a>
+          <button mat-stroked-button type="button" [disabled]="busy()" (click)="verify()">Verify session</button>
+          <button mat-button type="button" (click)="logout()">Log out</button>
+        </div>
+        <p class="muted">Continue to {{ returnUrl() }} when you are ready. Sign-in never redirects automatically.</p>
+        @if (busy()) { <p role="status">Verifying with GET /auth/me… You can still log out or leave.</p> }
+        @if (verification()) { <p role="status">{{ verification() }}</p> }
+      </section>
+    } @else {
+      <h2>Sign in with a public demo</h2>
+      <p id="public-demo-warning">Use public practice credentials only. Never enter a personal or work password, or save it in your password manager.</p>
+      <div class="demo-hint" id="demo-credentials">
+        @if (mode === 'mock') {
+          <p>Local example: <strong>learner</strong> / <strong>practice-only</strong> (user ID 2).
+            The public emilys / emilyspass example also works in mock mode.</p>
+        } @else {
+          <p>DummyJSON public example: <strong>emilys</strong> / <strong>emilyspass</strong>.</p>
+        }
+        <button mat-stroked-button type="button" [disabled]="busy()" (click)="fillDemo()">Fill public demo values</button>
+      </div>
+      <form novalidate autocomplete="off" (submit)="signIn($event)" [attr.aria-busy]="busy()"
+        aria-label="Public demo sign in" aria-describedby="public-demo-warning demo-credentials">
+        <div class="fields">
+          <mat-form-field appearance="outline">
+            <mat-label>Public demo username</mat-label>
+            <input matInput id="demo-username" autocomplete="off" autocapitalize="none" spellcheck="false" [formField]="loginForm.username" />
+            <mat-error>{{ loginForm.username().errors()[0]?.message ?? 'Enter a valid public username.' }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Public demo password</mat-label>
+            <input matInput id="demo-password" [type]="passwordVisible() ? 'text' : 'password'" autocomplete="off"
+              autocapitalize="none" spellcheck="false" [formField]="loginForm.password" />
+            <button mat-button matSuffix type="button" [disabled]="busy()" [attr.aria-pressed]="passwordVisible()"
+              aria-controls="demo-password" (click)="passwordVisible.set(!passwordVisible())">{{ passwordVisible() ? 'Hide password' : 'Show password' }}</button>
+            <mat-error>{{ loginForm.password().errors()[0]?.message ?? 'Enter a valid public password.' }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Local practice role</mat-label>
+            <mat-select [formField]="loginForm.role">
+              <mat-option value="learner">Learner</mat-option>
+              <mat-option value="demo-admin">Demo admin</mat-option>
+            </mat-select>
+            <mat-hint>Local UI only — NOT server privileges. The role is not sent to the API.</mat-hint>
+            <mat-error>{{ loginForm.role().errors()[0]?.message ?? 'Choose a local practice role.' }}</mat-error>
+          </mat-form-field>
+        </div>
+        <div class="actions">
+          <button mat-flat-button type="submit" [disabled]="busy()">{{ busy() ? 'Signing in…' : 'Sign in' }}</button>
+          @if (busy()) { <button mat-button type="button" (click)="logout()">Cancel sign in</button> }
+        </div>
+        @if (busy()) { <p role="status">Signing in and checking GET /auth/me… Cancel or leave at any time.</p> }
+        @if (loginForm().pending()) { <p role="status">Validation pending. Sign-in must wait.</p> }
+      </form>
+    }
+    @if (busy()) { <mat-progress-bar mode="indeterminate" aria-label="Session request pending" /> }
+  </mat-card-content></mat-card>
+  <aside aria-labelledby="session-lifetime-heading">
+    <p class="eyebrow muted">Temporary by design</p>
+    <h2 id="session-lifetime-heading">In memory, not in storage</h2>
+    <ul>
+      <li>The session expires after 30 minutes. Reloading or logging out ends it sooner.</li>
+      <li>The app does not save credentials or tokens to browser storage. Tokens are never displayed.</li>
+      <li>Your password is cleared after success, failure or cancellation. Browser autofill is discouraged but may ignore this page’s settings.</li>
+      <li>Requests time out after 15 seconds and never retry automatically. Leaving cancels pending work.</li>
+      <li>Logging out keeps your anonymous cart. Reloading clears the in-memory cart too.</li>
+    </ul>
+  </aside>
+</div>

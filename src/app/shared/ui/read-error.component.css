@@ -1,0 +1,3 @@
+:host { display: block; padding: 1rem; border: 1px solid var(--mat-sys-error); border-radius: 12px; }
+h3 { margin-top: 0; color: var(--mat-sys-error); }
+p { overflow-wrap: anywhere; }

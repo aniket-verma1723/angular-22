@@ -1,0 +1,92 @@
+<h1 tabindex="-1">Typed Reactive Forms comparison</h1>
+<app-forms-lesson concept="A typed FormGroup owns this independent product-like draft, equivalent to the Signal lab."
+  exercise="Fill sample, type a title, then Tab away and resolve availability. Add up to three notes and toggle the optional FormRecord entry."
+  mechanism="updateOn: blur commits the title. AsyncValidatorFn cancels replaced subscriptions. Nested FormGroup, FormArray and FormRecord own their controls; the separate stock CVA reports only user changes."
+  mistake="Do not echo onChange from writeValue, or assume form.reset() also clears FormGroupDirective.submitted."
+  question="Why is the disabled reference absent from value but present in getRawValue()?" />
+
+<mat-card appearance="outlined"><mat-card-content>
+  <h2>Local product-like draft</h2>
+  <form [formGroup]="draftForm" (ngSubmit)="save()" [attr.aria-busy]="stage() === 'saving'">
+    <fieldset [disabled]="stage() === 'saving'">
+      <legend>Product exercise — never changes products or cart</legend>
+      <div class="grid">
+        <div><label>Title <input #titleInput data-title formControlName="title" (input)="titleBuffered.set(true)" (blur)="titleBuffered.set(false)"
+          [attr.aria-invalid]="fields.title.invalid" aria-describedby="reactive-title-error reactive-title-hint"></label>
+          <p id="reactive-title-hint">Title commits on blur. Local banned fixtures: reserved, demo (case-insensitive).</p>
+          <p class="error" id="reactive-title-error">{{ error(fields.title) }}</p></div>
+        <div><label>Price (USD) <input type="number" step="0.01" formControlName="price" [attr.aria-invalid]="fields.price.invalid" aria-describedby="reactive-price-error"></label>
+          <p class="error" id="reactive-price-error">{{ error(fields.price) }}</p></div>
+        <div><app-reactive-stock-control formControlName="stock" [invalid]="fields.stock.invalid" errorId="reactive-stock-error" />
+          <p class="error" id="reactive-stock-error">{{ error(fields.stock) }}</p></div>
+        <div><label>Category <input formControlName="category" list="reactive-categories" [attr.aria-invalid]="fields.category.invalid" aria-describedby="reactive-category-error"></label>
+          <datalist id="reactive-categories"><option value="groceries"></option><option value="beauty"></option><option value="furniture"></option></datalist>
+          <p class="error" id="reactive-category-error">{{ error(fields.category) }}</p></div>
+        <label>Disabled reference <input formControlName="reference"></label>
+      </div>
+      <fieldset formGroupName="schedule">
+        <legend>Nested scheduling</legend>
+        <label class="check"><input type="checkbox" formControlName="enabled"> Enable local schedule</label>
+        <p>Calendar strings, not UTC instants. Off disables (but preserves) dates and acknowledgement.</p>
+        <div class="grid">
+          <div><label>Start date <input type="date" formControlName="start" [attr.aria-invalid]="fields.schedule.controls.start.invalid" aria-describedby="reactive-start-error reactive-order-error"></label>
+            <p class="error" id="reactive-start-error">{{ error(fields.schedule.controls.start) }}</p></div>
+          <div><label>End date <input type="date" formControlName="end" [attr.aria-invalid]="fields.schedule.controls.end.invalid || fields.schedule.hasError('dateOrder')" aria-describedby="reactive-end-error reactive-order-error"></label>
+            <p class="error" id="reactive-end-error">{{ error(fields.schedule.controls.end) }}</p></div>
+        </div>
+        <p class="error" id="reactive-order-error">{{ error(fields.schedule) }}</p>
+        <label class="check"><input type="checkbox" formControlName="acknowledged" [attr.aria-invalid]="fields.schedule.controls.acknowledged.invalid" aria-describedby="reactive-ack-error"> Acknowledge local schedule</label>
+        <p class="error" id="reactive-ack-error">{{ error(fields.schedule.controls.acknowledged) }}</p>
+      </fieldset>
+      <fieldset aria-describedby="reactive-notes-error">
+        <legend>Notes (maximum three, distinct text)</legend>
+        @for (note of fields.notes.controls; track note; let index = $index) {
+          <div class="note"><label>Note {{ index + 1 }} <input [formControl]="note.controls.text" [attr.aria-invalid]="note.controls.text.invalid || fields.notes.errors !== null" [attr.aria-describedby]="'reactive-notes-error reactive-note-error-' + note.controls.id.value"></label>
+            <p class="error" [id]="'reactive-note-error-' + note.controls.id.value">{{ error(note.controls.text) }}</p>
+            <button mat-button type="button" (click)="removeNote(index)">Remove note {{ index + 1 }}</button></div>
+        }
+        <p class="error" id="reactive-notes-error">{{ error(fields.notes) }}</p>
+        <button mat-button type="button" (click)="addNote()" [disabled]="fields.notes.length >= maxNotes || stage() === 'saving'">Add note</button>
+      </fieldset>
+      <fieldset>
+        <legend>Optional FormRecord entry (label only)</legend>
+        @if (fields.annotations.controls['label']; as label) {
+          <label>Annotation label <input [formControl]="label" [attr.aria-invalid]="label.invalid" aria-describedby="reactive-annotation-error"></label>
+          <p class="error" id="reactive-annotation-error">{{ error(label) }}</p>
+        }
+        <button mat-button type="button" (click)="toggleAnnotation()">Toggle optional label</button>
+      </fieldset>
+    </fieldset>
+    <div class="actions">
+      <button mat-flat-button type="submit" [disabled]="!draftForm.valid || draftForm.pending || titleBuffered() || stage() === 'saving' || leave.confirming()">Save local draft</button>
+      <button mat-button type="button" (click)="review()" [disabled]="stage() === 'saving'">Review errors</button>
+      <button mat-button type="button" (click)="sample()" [disabled]="stage() === 'saving' || leave.confirming()">Fill sample</button>
+      <button mat-button type="button" (click)="resetDraft()" [disabled]="stage() === 'saving' || leave.confirming()">Reset draft</button>
+    </div>
+  </form>
+</mat-card-content></mat-card>
+
+<mat-card appearance="outlined"><mat-card-content>
+  <h2>Controlled local responses</h2>
+  <p role="status">Form status: {{ observation().status }} · Save stage: {{ stage() }} · Dirty: {{ draftForm.dirty }} · Touched: {{ draftForm.touched }}</p>
+  <p>No endpoint or timer. Resolve applies the small banned-name fixture, not a real uniqueness guarantee.</p>
+  @for (request of availability.requests(); track request.id) {
+    <p>Request {{ request.id }}: {{ request.title }}</p>
+    <div class="actions">
+      <button mat-button type="button" (click)="availability.resolve(request.id)">Resolve availability {{ request.id }}</button>
+      <button mat-button type="button" (click)="availability.fail(request.id)">Fail availability {{ request.id }}</button>
+    </div>
+  }
+  <p>Cancelled checks: {{ availability.cancellations() }}</p>
+  <button mat-button type="button" (click)="retryAvailability()" [disabled]="stage() === 'saving' || fields.title.pending">Retry availability</button>
+  <div class="actions">
+    <button mat-button type="button" (click)="completeSave(true)" [disabled]="stage() !== 'saving'">Complete success</button>
+    <button mat-button type="button" (click)="completeSave(false)" [disabled]="stage() !== 'saving'">Fail response</button>
+  </div>
+  @if (stage() === 'failure') { <p role="alert">Local save failed. Draft preserved. Resolve any renewed availability check, then retry.</p> }
+  @if (stage() === 'success') { <p role="status">Local simulation complete. Draft cleared; nothing persisted.</p> }
+  <p role="status">{{ notice() }} {{ leave.message() }}</p>
+  <h3>Enabled value</h3><pre>{{ observation().value | json }}</pre>
+  <h3>Raw value (including disabled fields)</h3><pre>{{ observation().raw | json }}</pre>
+  <p>Title buffered until blur: {{ titleBuffered() }} · Committed title: {{ fields.title.value }}</p>
+</mat-card-content></mat-card>

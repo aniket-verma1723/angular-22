@@ -1,0 +1,30 @@
+:host { display: block; min-width: 0; margin-block-end: 1.5rem; color: var(--mat-sys-on-surface, CanvasText); }
+section { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--mat-sys-outline-variant, GrayText);
+  border-radius: 1rem; background: var(--mat-sys-surface-container-low, Canvas); overflow-wrap: anywhere; }
+h3 { font-size: 1rem; margin-block: 1.25rem .4rem; }
+p, li { line-height: 1.6; max-width: 80ch; }
+li + li { margin-block-start: .5rem; }
+.controls { display: flex; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
+button { min-height: 44px; max-width: 100%; padding: .5rem .85rem; font: inherit; cursor: pointer;
+  color: var(--mat-sys-on-surface, CanvasText); background: var(--mat-sys-surface, Canvas);
+  border: 1px solid var(--mat-sys-outline, GrayText); border-radius: .5rem; }
+button:focus-visible { outline: 3px solid var(--mat-sys-primary, Highlight); outline-offset: 3px; }
+.stage { min-block-size: 12rem; padding: 1rem; border: 1px dashed var(--mat-sys-outline, GrayText); border-radius: .5rem; }
+app-animation-card { display: block; padding: .75rem; border-radius: .5rem;
+  color: var(--mat-sys-on-secondary-container, CanvasText); background: var(--mat-sys-secondary-container, Canvas); }
+.card-enter { animation: card-appear 240ms ease-out both; }
+.card-leave { animation: card-disappear 600ms ease-in both; }
+@keyframes card-appear {
+  from { opacity: 0; transform: translateY(.5rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes card-disappear {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(.5rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Override the global reduced-motion duration: a nonzero duration with name
+     none makes Angular wait for a completion event that cannot occur. */
+  .card-enter, .card-leave { animation: none; animation-duration: 0s !important;
+    transition: none; transition-duration: 0s !important; transform: none; }
+}

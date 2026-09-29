@@ -1,0 +1,130 @@
+<h1 tabindex="-1">Tasks</h1>
+<p>Public assignment board · M07 / P08 · Signal Forms and serialized writes</p>
+<p class="notice">A selected user is a public assignment filter, not your authenticated identity. No session is required.</p>
+@if (mode === 'mock') {
+  <p class="notice">Session mock mode: writes change in-memory mock data for this app session. A browser reload resets it.</p>
+} @else {
+  <p class="notice">Remote preview: all writes are simulated, not durable. Reload rereads the server and replaces local previews.</p>
+}
+
+<form class="toolbar" (submit)="applyFilter($event)" aria-label="Filter tasks">
+  <mat-form-field>
+    <mat-label>Public user ID filter (optional)</mat-label>
+    <input matInput inputmode="numeric" [value]="filterDraft()" (input)="editFilter(filterInput.value)" #filterInput
+      [disabled]="board.locked()" [attr.aria-invalid]="filterError() ? 'true' : null"
+      [aria-describedby]="filterError() ? 'filter-help filter-error' : 'filter-help'" />
+    <mat-hint id="filter-help">Empty means all users.</mat-hint>
+  </mat-form-field>
+  <button mat-flat-button type="submit" [disabled]="board.locked()">Apply filter</button>
+  <button mat-button type="button" [disabled]="board.locked()" (click)="allUsers()">All users</button>
+  <button mat-button type="button" [disabled]="board.locked() || !board.query()" (click)="reload()">Reload page</button>
+</form>
+@if (filterError()) { <p id="filter-error" role="alert">{{ filterError() }}</p> }
+@if (urlError()) { <p role="alert">{{ urlError() }}</p> }
+<p role="status" aria-live="polite" class="status">{{ board.message() }}</p>
+@if (board.busy() || board.confirming()) {
+  <p role="status">{{ board.pending() }} / 10 operations pending. Reload, filters, pages, and navigation are locked until writes finish and confirmations close.</p>
+}
+@if (board.full()) { <p role="alert">Queue full. Wait for a write to finish before adding another operation.</p> }
+
+<section aria-labelledby="create-task-heading">
+  <mat-card><mat-card-content>
+    <h2 id="create-task-heading">Create a task</h2>
+    <form class="create-form" (submit)="create($event)" novalidate aria-label="Create a task">
+      <mat-form-field class="task-text">
+        <mat-label>Task text</mat-label>
+        <textarea matInput rows="2" [formField]="taskForm.todo"></textarea>
+        <mat-hint>At most {{ maxLength }} characters.</mat-hint>
+        @for (error of taskForm.todo().errors(); track $index) { <mat-error>{{ error.message }}</mat-error> }
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Public assignment user ID</mat-label>
+        <input matInput type="number" [formField]="taskForm.userId" />
+        @for (error of taskForm.userId().errors(); track $index) { <mat-error>{{ error.message }}</mat-error> }
+      </mat-form-field>
+      <button mat-flat-button type="submit" [disabled]="taskForm().pending() || board.createPhase() !== null || board.confirming() || board.full() || !board.snapshot()">Create task</button>
+    </form>
+    @if (board.createPhase(); as phase) { <p role="status">Creation {{ phase }}. Duplicate submission is blocked.</p> }
+    @if (board.createError()) { <p role="alert">{{ board.createError() }} Your draft is kept; use Create task to try again.</p> }
+  </mat-card-content></mat-card>
+</section>
+
+@if (board.created(); as result) {
+  <section class="result" aria-labelledby="creation-result-heading">
+    <h2 id="creation-result-heading" tabindex="-1">Creation result — not a board row</h2>
+    <p>{{ result.value.todo }}</p>
+    @if (result.persistence === 'simulated') {
+      <p>Simulated remote response. Returned ID #{{ result.value.id }} is not a durable created ID and cannot be acted on here.</p>
+    } @else {
+      <p>Created in session mock data. Explicitly reload the desired filter/page to find it; it may not be on this page. Browser reload resets mock data.</p>
+    }
+    <p>No creation result is inserted into the paged snapshot.</p>
+  </section>
+}
+
+<section aria-labelledby="task-board-heading" [attr.aria-busy]="board.loading()">
+  <h2 id="task-board-heading" tabindex="-1">Current page board</h2>
+  @if (board.loading()) { <p role="status">Loading tasks…</p><mat-progress-bar mode="indeterminate" aria-label="Loading tasks" /> }
+  @if (board.loadError()) { <p role="alert">{{ board.loadError() }} Use Reload page to try again.</p> }
+  @if (board.snapshot(); as snapshot) {
+    <p>{{ snapshot.total }} tasks at last load · {{ board.rows().length }} rows in local page snapshot · offset {{ snapshot.skip }}.</p>
+    <p>OPEN / DONE describe only this page, not the full collection. Drag and Move up/down change local column order only; no server order is invented.</p>
+    <p id="task-order-help">Drag using a pointer within the same column only. For keyboard ordering, use Move up/down; CDK does not supply keyboard dragging.
+      Drag needs at least two rows in a column and is disabled during queued/in-flight writes or confirmations.
+      Move up/down can still reorder unlocked rows. Use Completed to change columns through the PATCH queue.</p>
+    @if (board.changed()) { <p class="notice">Locally modified snapshot. Deleted rows stay removed here; totals remain “at last load”. Reload for an authoritative page.</p> }
+    <div class="board">
+      @for (column of board.columns(); track column.name) {
+        <section class="column" cdkDropList [id]="'task-list-' + column.name" [cdkDropListData]="column.rows"
+          cdkDropListOrientation="vertical" [cdkDropListDisabled]="board.locked() || column.rows.length < 2"
+          (cdkDropListDropped)="drop($event)" [attr.aria-labelledby]="'column-' + column.name">
+          <h2 [id]="'column-' + column.name">{{ column.name }} · {{ column.rows.length }}</h2>
+          @for (row of column.rows; track row.task.id; let first = $first; let last = $last) {
+            <mat-card class="task-drag-card" cdkDrag [cdkDragData]="row" cdkDragLockAxis="y"
+              [cdkDragDisabled]="board.locked() || row.phase !== null || column.rows.length < 2"
+              (cdkDragStarted)="startDrag(row)" [attr.data-task-id]="row.task.id" [attr.aria-busy]="row.phase !== null">
+              <mat-card-content>
+                <h3 tabindex="-1" data-focus="heading">Task #{{ row.task.id }}</h3>
+                <p class="todo">{{ row.task.todo }}</p>
+                <p>Public assignment: user #{{ row.task.userId }}</p>
+                <mat-checkbox [checked]="row.task.completed" [disabled]="row.phase !== null || board.confirming() || board.full()"
+                  (change)="complete(row.task.id, $event.checked)" [aria-label]="'Mark task ' + row.task.id + ' completed'">Completed</mat-checkbox>
+                @if (row.phase) { <p role="status">{{ row.phase === 'queued' ? 'Queued — waiting for earlier writes' : 'In flight — request running' }}</p> }
+                @if (row.persistence) { <p>{{ row.persistence === 'simulated' ? 'Simulated local preview — reload rereads server' : 'Updated in session mock data' }}</p> }
+                @if (row.error) { <p role="alert">{{ row.error }}</p> }
+                <div class="row-actions">
+                  <button mat-button type="button" class="drag-handle" cdkDragHandle data-focus="drag"
+                    [disabled]="board.locked() || row.phase !== null || column.rows.length < 2"
+                    [cdkDragHandleDisabled]="board.locked() || row.phase !== null || column.rows.length < 2"
+                    [attr.aria-label]="'Drag task ' + row.task.id + ' within ' + column.name" aria-describedby="task-order-help"
+                    (click)="board.notify('Drag uses a pointer. For keyboard ordering, use this task’s Move up/down buttons. Local order only; no request sent.')">Drag</button>
+                  <button mat-button type="button" data-focus="up" [disabled]="first || row.phase !== null || board.confirming()"
+                    [attr.aria-label]="'Move task ' + row.task.id + ' up in ' + column.name" (click)="move(row.task.id, -1)">Move up</button>
+                  <button mat-button type="button" data-focus="down" [disabled]="last || row.phase !== null || board.confirming()"
+                    [attr.aria-label]="'Move task ' + row.task.id + ' down in ' + column.name" (click)="move(row.task.id, 1)">Move down</button>
+                  <button mat-button type="button" data-focus="delete" [disabled]="row.phase !== null || board.confirming() || board.full()"
+                    [attr.aria-label]="'Delete task ' + row.task.id" (click)="remove(row.task.id)">Delete</button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          } @empty { <p>No {{ column.name.toLowerCase() }} tasks on this page.</p> }
+        </section>
+      }
+    </div>
+    @if (board.rows().length === 0) {
+      <p>No tasks in this local page snapshot. Reload or choose another page/filter.</p>
+      @if ((board.query()?.pageIndex ?? 0) > 0) { <button mat-button type="button" [disabled]="board.locked()" (click)="firstPage()">First page</button> }
+    }
+    <mat-paginator [length]="snapshot.total" [pageIndex]="board.query()?.pageIndex ?? 0" [pageSize]="board.query()?.pageSize ?? 10"
+      [pageSizeOptions]="pageSizes" [disabled]="board.locked()" showFirstLastButtons (page)="paginate($event)" aria-label="Task snapshot pages" />
+  }
+</section>
+
+<aside class="learning notice" aria-label="Tasks learning guide">
+  <h2>Serialize writes, keep recovery local</h2>
+  <p><strong>Concept:</strong> concatMap serializes admitted writes; this board caps queued plus in-flight operations at 10. P10 pointer ordering is a separate local interaction.</p>
+  <p><strong>Try it:</strong> toggle different rows and watch queued/in-flight labels, then drag a handle several positions within OPEN or DONE, or use Move up/down: local ordering sends no HTTP.</p>
+  <p><strong>Angular mechanism:</strong> cdkDrag, cdkDragHandle and cdkDropList emit a typed drop event; the board validates the captured snapshot and immutably reorders it. Signals render row state; catchError inside concatMap keeps later writes alive and rolls back only the failed row, not the whole page.</p>
+  <p><strong>Common mistake:</strong> assuming CDK supplies keyboard dragging or persists order. Keep the native Move up/down alternative. Remote writes are simulated; reload rereads the server. Teardown cancels active HTTP and drops unstarted writes, but does not roll back server work.</p>
+  <p><strong>Revision prompt:</strong> why reject a stale drop, keep ordering separate from completion PATCH, and keep catchError inside each write? Why is teardown not a server rollback?</p>
+</aside>

@@ -1,0 +1,70 @@
+<section aria-labelledby="animation-heading">
+  <h2 id="animation-heading">CSS enter/leave and component lifetime</h2>
+  <h3>Concept</h3>
+  <p><code>animate.enter</code> and <code>animate.leave</code> let Angular coordinate CSS classes
+    with insertion and removal. DOM removal is not the same event as component destruction.</p>
+  <h3>Try it</h3>
+  <ol>
+    <li>Show the card, then inspect. Hide it and inspect while it fades, then inspect again
+      after the fade. Snapshots change only when you press Inspect animation lifetime.</li>
+    <li>Use Tab, Enter or Space on the native buttons. Focus stays outside the removable card.</li>
+    <li>Toggle quickly. If the previous host is still leaving, Show rejects that attempt;
+      try again after removal. There is no queued re-entry or growing collection of cards.</li>
+    <li>Emulate reduced motion in your browser's Rendering panel and repeat. The same state
+      changes work without movement; there may be no visible leaving interval to inspect.</li>
+  </ol>
+  <div class="controls">
+    <button type="button" data-animation-toggle aria-controls="animation-stage"
+      [attr.aria-expanded]="visible()" (click)="toggleCard()">
+      {{ visible() ? 'Hide animated card' : 'Show animated card' }}
+    </button>
+    <button type="button" (click)="inspectAnimation()">Inspect animation lifetime</button>
+  </div>
+  <p role="status" data-animation-request>Requested state: {{ visible() ? 'shown' : 'hidden' }}.
+    @if (blocked()) { Previous card is still leaving. Try Show again after removal. }
+  </p>
+  <div #animationStage id="animation-stage" class="stage">
+    @if (visible()) {
+      <app-animation-card animate.enter="card-enter" animate.leave="card-leave" />
+    }
+  </div>
+  <h3>What Angular does</h3>
+  <p>Angular adds <code>card-enter</code> on insertion and removes that class when the animation
+    finishes. On removal it applies <code>card-leave</code> and waits for the longest relevant
+    CSS animation/transition before removing the host. These are compiler-supported bindings,
+    not legacy animation triggers; no animation provider or JavaScript animation loop is needed.</p>
+  <p>Older code may use <code>trigger</code>, <code>state</code>, <code>transition</code> and
+    <code>animate</code> from <code>&#64;angular/animations</code>, with an animation provider.
+    Recognize that legacy DSL when maintaining an existing application; this CSS lesson does
+    not install it or mix legacy triggers with the compiler's enter/leave bindings.</p>
+  <p>When the conditional view is destroyed, the card's <code>DestroyRef.onDestroy</code>
+    callback records whether its host still has a parent. With leave animation enabled it can
+    record attachment even though the Angular instance has already been destroyed. That frozen
+    DOM is not a live component. Inspect again to observe eventual removal separately.</p>
+  <p>The parent owns the CSS, so it remains available while the child is leaving. Angular owns
+    animation completion and its scheduling/cleanup. The lesson adds no timer, observer, manual
+    listener or subscription. Its only lifecycle callback belongs to the card's destruction scope;
+    no detached elements or per-toggle history are saved.</p>
+  <h3>Common mistake</h3>
+  <p>Do not delay resource cleanup until a CSS event, assume destruction means immediate DOM
+    removal, or leave focus in a disappearing control. Avoid animating layout dimensions for
+    this effect: only opacity and transform change. The reserved stage can still grow for large text.</p>
+  <h3>Revision question</h3>
+  <p>How can an inspection report zero active Angular instances and one card DOM node?
+    What should change when reduced motion removes the visual delay?</p>
+  <h3>Test observation</h3>
+  <p role="status" data-animation-observation>
+    @if (observation(); as snapshot) {
+      Last inspection — created: {{ snapshot.created }}; destroyed: {{ snapshot.destroyed }};
+      active Angular instances: {{ snapshot.active }}; card DOM nodes: {{ snapshot.domNodes }};
+      DOM present at last destruction:
+      {{ snapshot.domPresentAtLastDestruction === null ? 'not observed yet' : snapshot.domPresentAtLastDestruction ? 'yes' : 'no' }}.
+    } @else {
+      No animation inspection yet.
+    }
+  </p>
+  <p>Counters saturate at 999 and reset on a new lesson instance. Jasmine disables animations
+    to check creation, teardown, snapshots and repeated toggles deterministically. Browser checks
+    must verify real CSS classes, delayed removal, rapid re-entry and reduced motion; a unit
+    lifecycle count does not prove visual timing or absence of all browser resource leaks.</p>
+</section>

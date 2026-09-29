@@ -1,0 +1,32 @@
+<app-material-lesson [lesson]="lesson">
+  <div class="controls">
+    <button mat-button type="button" [matMenuTriggerFor]="actions">Observation actions</button>
+    <mat-menu #actions="matMenu">
+      <button mat-menu-item type="button" (click)="selectTab(1)">Review notes</button>
+      <button mat-menu-item type="button" disabled>Publish archived observation</button>
+      <button mat-menu-item type="button" (click)="reset()">Reset actions</button>
+    </mat-menu>
+    <button mat-icon-button type="button" aria-label="Pin observation" [attr.aria-pressed]="pinned()"
+      matTooltip="Pin only this fictional observation" (click)="togglePin()">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+        <path d="M8 3h8l-1 7 3 3v2h-5v6h-2v-6H6v-2l3-3z" fill="currentColor" />
+      </svg>
+    </button>
+    <span data-pin-status>{{ pinned() ? 'Pinned locally' : 'Not pinned' }}</span>
+  </div>
+  <mat-button-toggle-group aria-label="Observation reading mode" [value]="mode()" (change)="selectMode($event.value)">
+    <mat-button-toggle value="brief">Brief</mat-button-toggle>
+    <mat-button-toggle value="detail">Detail</mat-button-toggle>
+    <mat-button-toggle value="live" disabled>Live</mat-button-toggle>
+  </mat-button-toggle-group>
+  <mat-tab-group aria-label="Observation panels" [selectedIndex]="tab()" (selectedIndexChange)="selectTab($event)" animationDuration="0ms">
+    <mat-tab label="Preview">
+      <p class="panel" data-preview>{{ mode() === 'brief' ? 'Aurora: a fictional sky note.' : 'Aurora: a fictional sky note with three practice readings, prepared entirely in memory.' }}</p>
+    </mat-tab>
+    <mat-tab label="Notes">
+      <p class="panel">Notes stay local. Current reading mode: {{ mode() }}. {{ pinned() ? 'Observation is pinned.' : 'Observation is not pinned.' }}</p>
+    </mat-tab>
+    <mat-tab label="Locked" disabled><p>Unavailable in this experiment.</p></mat-tab>
+  </mat-tab-group>
+  <button mat-button type="button" (click)="reset()">Reset actions</button>
+</app-material-lesson>

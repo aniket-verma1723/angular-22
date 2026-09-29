@@ -1,0 +1,42 @@
+:host { display: block; max-width: 1200px; margin-inline: auto; }
+h1, h2, h3 { overflow-wrap: anywhere; }
+.notice, .result { padding: 1rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; background: var(--mat-sys-surface-container); }
+.toolbar, .create-form, .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.toolbar { margin-block: 1.5rem; }
+.create-form { align-items: flex-start; }
+.task-text { flex: 1 1 280px; }
+mat-form-field { min-width: 0; max-width: 100%; }
+.board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.column { min-width: 0; padding: 1rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; }
+mat-card { margin-block-end: 1rem; }
+.drag-handle:not(:disabled) { cursor: grab; touch-action: none; }
+.drag-handle:active:not(:disabled) { cursor: grabbing; }
+.task-drag-card { min-width: 0; }
+/* The global preview retains this component's scope attribute and uses root theme tokens. */
+.task-drag-card.cdk-drag-preview {
+  box-sizing: border-box;
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  border: 2px solid var(--mat-sys-primary);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--mat-sys-shadow);
+}
+.task-drag-card.cdk-drag-placeholder { opacity: .35; }
+.task-drag-card.cdk-drag-animating,
+.cdk-drop-list-dragging .task-drag-card:not(.cdk-drag-placeholder) { transition: transform 120ms ease-out; }
+.todo, [role="alert"], .result p { overflow-wrap: anywhere; white-space: pre-wrap; }
+.status { min-height: 1.5em; }
+.learning { margin-top: 1.5rem; font-size: .9rem; }
+.learning h2 { font-size: 1.2rem; }
+:focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .task-drag-card.cdk-drag-animating,
+  .cdk-drop-list-dragging .task-drag-card:not(.cdk-drag-placeholder) { transition: none; }
+}
+@media (max-width: 650px) {
+  .board { grid-template-columns: minmax(0, 1fr); }
+  .toolbar, .create-form { align-items: stretch; }
+  mat-form-field { width: 100%; }
+  .task-text { flex-basis: 100%; }
+  .column { padding: .75rem; }
+}

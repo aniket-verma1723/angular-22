@@ -1,0 +1,51 @@
+@let result = state();
+<form (submit)="$event.preventDefault(); load()" novalidate>
+  <label for="resource-product-id">Product ID</label>
+  <input #productId id="resource-product-id" type="text" inputmode="numeric" autocomplete="off"
+    [value]="draft()" (input)="edit(productId.value)" [attr.aria-invalid]="invalid()"
+    [attr.aria-describedby]="invalid() ? 'resource-id-hint resource-id-error' : 'resource-id-hint'">
+  <p id="resource-id-hint">Enter a positive whole-number ID. Try 1, 2, or missing product 999 in local mock mode.
+    Editing the field alone does not request data.</p>
+  @if (invalid()) {
+    <p id="resource-id-error" role="alert">Enter a positive safe whole-number product ID.</p>
+  }
+  <div class="actions">
+    <button type="submit">Load product</button>
+    <button type="button" (click)="reload()" [disabled]="selectedId() === undefined || busy()">Reload selected product</button>
+    <button type="button" (click)="reload()" [disabled]="result.status !== 'error'"
+      [attr.aria-describedby]="result.status === 'error' ? 'resource-read-error' : null">Retry read</button>
+    <button type="button" (click)="clear(productId)">Clear selection</button>
+  </div>
+</form>
+<p>Selected ID: <strong>{{ selectedId() ?? 'none' }}</strong></p>
+<p role="status" aria-live="polite">Read state: <strong>{{ result.status }}</strong></p>
+<section aria-labelledby="resource-result-heading" [attr.aria-busy]="busy()">
+  <h3 id="resource-result-heading">Product read result</h3>
+  @switch (result.status) {
+    @case ('idle') {
+      <p>No selection — idle / empty view. Choose an ID and explicitly Load product.</p>
+    }
+    @case ('loading') {
+      <p>Loading product {{ result.id }}. Previous product cleared; only the new read can publish.</p>
+    }
+    @case ('error') {
+      <p id="resource-read-error" role="alert">{{ result.message }}</p>
+      <p>There is no valid product to display. Retry the selected ID, load a different ID, or clear selection.</p>
+    }
+  }
+  @if (result.status === 'resolved' || result.status === 'reloading') {
+    @if (result.status === 'reloading') {
+      <p class="stale"><strong>Refreshing — previous result is stale.</strong> This is the last successful read, not the new response.</p>
+    }
+    <article aria-labelledby="resource-product-heading">
+      <h4 id="resource-product-heading">{{ result.product.title }}</h4>
+      <p>Product {{ result.product.id }} · {{ result.product.category }}</p>
+      <p>{{ result.product.description || 'No description provided.' }}</p>
+      <dl>
+        <div><dt>Demo price (USD)</dt><dd>{{ result.product.price | currency:'USD' }}</dd></div>
+        <div><dt>Stock at last read</dt><dd>{{ result.product.stock }}</dd></div>
+        <div><dt>Rating out of 5</dt><dd>{{ result.product.rating }}</dd></div>
+      </dl>
+    </article>
+  }
+</section>

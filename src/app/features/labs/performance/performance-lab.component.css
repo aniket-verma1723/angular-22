@@ -1,0 +1,20 @@
+:host { display: block; min-width: 0; color: var(--mat-sys-on-surface, CanvasText); }
+header, section, aside { margin-block-end: 1.5rem; overflow-wrap: anywhere; }
+section, aside { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--mat-sys-outline-variant, GrayText);
+  border-radius: 1rem; background: var(--mat-sys-surface-container-low, Canvas); }
+h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); }
+h2 { margin-block-start: 0; }
+h3 { font-size: 1rem; margin-block: 1.25rem .4rem; }
+p { line-height: 1.6; max-width: 80ch; }
+.controls { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
+button, select { min-height: 44px; max-width: 100%; padding: .5rem .85rem; font: inherit;
+  color: var(--mat-sys-on-surface, CanvasText); background: var(--mat-sys-surface, Canvas);
+  border: 1px solid var(--mat-sys-outline, GrayText); border-radius: .5rem; }
+button { cursor: pointer; }
+a { color: var(--mat-sys-primary, LinkText); text-underline-offset: .2em; }
+nav a { display: inline-flex; align-items: center; min-height: 44px; }
+:is(button, select, a, [tabindex]):focus-visible { outline: 3px solid var(--mat-sys-primary, Highlight); outline-offset: 3px; }
+/* Reserve the measured summary footprint without clipping enlarged text or adding nested scrolling. */
+.workbench { padding: 1rem; min-block-size: 55rem; border: 1px dashed var(--mat-sys-outline, GrayText); border-radius: .5rem; }
+@media (max-width: 600px) { .workbench { min-block-size: 60rem; } }
+code { overflow-wrap: anywhere; }

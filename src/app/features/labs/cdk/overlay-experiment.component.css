@@ -1,0 +1,6 @@
+.help-dialog { --help-surface: var(--mat-sys-surface-container-high, Canvas);
+  --help-ink: var(--mat-sys-on-surface, CanvasText);
+  width: min(30rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto;
+  box-sizing: border-box; padding: 1.5rem; border-radius: 1rem;
+  border: 1px solid var(--mat-sys-outline, GrayText); background: var(--help-surface); color: var(--help-ink);
+  box-shadow: var(--mat-sys-level3, 0 8px 24px #0004); }

@@ -1,0 +1,17 @@
+<div class="lesson-panel">
+  <header>
+    <ng-content select="[lesson-title]">
+      <h3>Projection playground</h3>
+    </ng-content>
+  </header>
+  <div class="lesson-content">
+    <ng-content>
+      <p>Default content appears here when the caller supplies no lesson content.</p>
+    </ng-content>
+  </div>
+  <footer>
+    <ng-content select="[lesson-actions]">
+      <p>Project an element marked lesson-actions to replace this explanatory fallback.</p>
+    </ng-content>
+  </footer>
+</div>

@@ -1,0 +1,54 @@
+<section aria-labelledby="fill-image-heading">
+  <h2 id="fill-image-heading">Image fill workbench</h2>
+  <h3>Concept</h3>
+  <p><code>NgOptimizedImage</code> fill mode sizes an image to its positioned parent, not its
+    intrinsic dimensions. This optional, below-the-fold image is lazy and not priority.</p>
+  <h3>Try it</h3>
+  <p>Compare the complete 4:3 illustration with its cropped version in a reserved 16:9 frame.
+    Then request an intentionally unavailable local image and restore the fixture.</p>
+  <div class="controls">
+    <button type="button" [attr.aria-pressed]="fit() === 'cover'"
+      aria-describedby="image-fit-hint" (click)="toggleFit()">Crop image (cover)</button>
+    <button type="button" (click)="tryUnavailable()">Try unavailable local image</button>
+    <button type="button" (click)="restore()">Restore local image</button>
+  </div>
+  <p id="image-fit-hint">Object fit: {{ fit() }}. Contain shows all content; cover crops without distortion.</p>
+  <div class="image-frame" data-image-frame>
+    @if (status() === 'failed') {
+      <div class="fallback" role="img" aria-label="Image unavailable: purple fictional product cube">
+        Image unavailable
+      </div>
+    } @else {
+      @for (request of requests(); track request.id) {
+        <img [ngSrc]="request.source" fill sizes="(max-width: 600px) 80vw, 40vw"
+          alt="Purple fictional product cube on a pale background" [style.object-fit]="fit()"
+          (load)="settle(request.id, 'ready')" (error)="settle(request.id, 'failed')">
+      }
+    }
+  </div>
+  <p role="status" data-image-status>
+    @switch (status()) {
+      @case ('loading') { Local image loading. }
+      @case ('ready') { Local image ready. }
+      @case ('failed') { Local image unavailable. }
+    }
+  </p>
+  <h3>What Angular does</h3>
+  <p>The directive sets lazy loading and absolute fill positioning. The parent reserves space with
+    <code>position: relative</code> and <code>aspect-ratio: 16 / 9</code>, capped at 32 rem.
+    The responsive <code>sizes</code> hint allows for narrow-page gutters; Angular can prepend
+    <code>auto</code> for the actual rendered width. This local SVG has no resizing CDN or generated
+    responsive variants; sizes alone does not reduce its transferred bytes.</p>
+  <h3>Common mistake</h3>
+  <p>Fill does not reserve height on its own. Do not add conflicting width/height attributes or
+    mark every image priority. Both the image and named fallback occupy the same frame; a failed
+    request does not collapse it. Restore creates a fresh image even for the same URL.</p>
+  <h3>Revision question</h3>
+  <p>Why does cover crop a 4:3 image in a 16:9 frame? Which element reserves space before loading
+    and after failure, and why is this image not priority?</p>
+  <h3>Test observation</h3>
+  <p>Only <code>/mock-product.svg</code> and the deliberately missing
+    <code>/mock-product-unavailable.svg</code> are requested, never an external image.
+    Compare frame geometry before load, after contain/cover, failure and restore at narrow width.
+    These checks are not field CLS or image-CDN measurements.</p>
+</section>

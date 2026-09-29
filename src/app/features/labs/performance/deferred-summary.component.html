@@ -1,0 +1,20 @@
+<section aria-labelledby="payload-heading">
+  <h3 id="payload-heading">Fictional measurement summary</h3>
+  <p role="status">Deferred summary ready.</p>
+  <p>Payload instance <span data-instance-id>{{ instanceId }}</span> in this lab visit.</p>
+  <dl>
+    <dt>Complete fixture count</dt><dd data-measurement-count>{{ summary().count }}</dd>
+    <dt>Total fictional duration (ms)</dt><dd data-total-ms>{{ summary().totalMs }}</dd>
+    <dt>Average fictional duration (ms)</dt><dd data-average-ms>{{ summary().averageMs }}</dd>
+  </dl>
+  <p>These invented numbers are not LCP, INP, CLS or measured performance gains.</p>
+  <table>
+    <caption>First ten samples only; totals include all 200 measurements</caption>
+    <thead><tr><th scope="col">Sample</th><th scope="col">Fictional duration (ms)</th></tr></thead>
+    <tbody>
+      @for (duration of samples(); track $index) {
+        <tr><th scope="row">{{ $index + 1 }}</th><td>{{ duration }}</td></tr>
+      }
+    </tbody>
+  </table>
+</section>

@@ -1,0 +1,38 @@
+:host { display: block; }
+.shell { --sidebar-width: 256px; min-height: 100dvh; }
+.sidebar { width: var(--sidebar-width); border-right: 1px solid var(--mat-sys-outline-variant); border-radius: 0; padding: 1.5rem 1rem; }
+.brand { display: flex; align-items: center; gap: 0.8rem; color: var(--mat-sys-on-surface); text-decoration: none; font-weight: 700; padding: 0.25rem; }
+.brand small { display: block; font-size: 0.6rem; letter-spacing: 0.12em; color: var(--mat-sys-on-surface-variant); margin-top: 0.2rem; }
+.brand-mark { width: 44px; height: 48px; display: grid; place-content: center; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); border-radius: 14px 14px 4px 14px; font-size: 1.3rem; line-height: 1; text-align: center; }
+.brand-mark span { font-size: 0.65rem; margin-top: 0.2rem; }
+.nav-caption { margin: 2.5rem 1rem 0.5rem; color: var(--mat-sys-on-surface-variant); }
+.module-navigation { display: grid; gap: 0.25rem; padding-block: 0.5rem; }
+.module-navigation a { display: flex; align-items: center; min-height: 48px; padding: 0.5rem 1rem; border-radius: 1.5rem; color: var(--mat-sys-on-surface); text-decoration: none; }
+.module-navigation a:hover { background: var(--mat-sys-surface-container-high); }
+.module-navigation a:focus-visible { outline: 2px solid var(--mat-sys-primary); outline-offset: 2px; }
+.active-link { background: var(--mat-sys-secondary-container); font-weight: 700; }
+.sidebar-note { margin: 2rem 0.5rem 0; padding: 1.25rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 1rem; font-size: 0.85rem; }
+.sidebar-note p { font-size: 1rem; font-weight: 600; }
+.toolbar { gap: 0.75rem; height: auto; min-height: 80px; padding: 1rem 2rem; border-bottom: 1px solid var(--mat-sys-outline-variant); }
+.toolbar-label { font-size: 0.85rem; color: var(--mat-sys-on-surface-variant); }
+.toolbar-spacer { flex: 1; }
+.toolbar-action { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box; min-width: 44px; min-height: 44px; padding: 0.625rem 0.75rem; border: 0; border-radius: 999px; background: transparent; color: var(--mat-sys-primary); font: var(--mat-sys-label-large); letter-spacing: var(--mat-sys-label-large-tracking); text-decoration: none; white-space: nowrap; cursor: pointer; }
+.toolbar-action:hover:not(:disabled) { background: var(--mat-sys-surface-container-high); }
+.toolbar-action:active:not(:disabled) { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.toolbar-action:focus-visible { outline: 2px solid var(--mat-sys-primary); outline-offset: 2px; }
+.toolbar-action:disabled { color: color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent); cursor: default; }
+.theme-control { display: flex; gap: 0.5rem; align-items: center; font-size: 0.8rem; }
+select { min-height: 40px; padding: 0.4rem; border: 1px solid var(--mat-sys-outline); border-radius: 0.5rem; background: var(--mat-sys-surface); color: var(--mat-sys-on-surface); }
+/* Keep the footer below the first viewport even before the primary lazy view arrives.
+  This is a minimum, not a fixed height: content and enlarged text can grow normally. */
+main { max-width: 1400px; margin: auto; padding: 2.5rem; min-height: calc(100dvh - 80px); }
+footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; border-top: 1px solid var(--mat-sys-outline-variant); padding: 1.5rem 2.5rem; font-size: 0.75rem; color: var(--mat-sys-on-surface-variant); }
+.skip-link { position: fixed; top: -100px; left: 1rem; z-index: 10; padding: 1rem; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
+.skip-link:focus { top: 1rem; }
+@media (max-width: 1199px) { .toolbar-label { display: none; } }
+@media (max-width: 599px) {
+  .toolbar { padding: 0.75rem; gap: 0.25rem; flex-wrap: wrap; }
+  .session-link { display: none; }
+  main { padding: 1.5rem 1rem; }
+  footer { padding: 1.5rem 1rem; }
+}

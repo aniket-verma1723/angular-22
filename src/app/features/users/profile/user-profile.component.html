@@ -1,0 +1,53 @@
+<a mat-button routerLink="/users" [queryParams]="backParams()">Back to users</a>
+<h1 tabindex="-1">User profile</h1>
+@if (id() === null) {
+  <p role="alert">Invalid user link. Use a positive whole-number ID.</p>
+} @else {
+  @let state = view();
+  <div class="sections">
+    <section aria-labelledby="profile-heading" [attr.aria-busy]="state.profile.status === 'loading'">
+      <h2 id="profile-heading">Public profile</h2>
+      @switch (state.profile.status) {
+        @case ('loading') { <p role="status">Loading profile…</p><mat-progress-bar mode="indeterminate" aria-label="Loading profile" /> }
+        @case ('error') { <app-read-error section="profile" [error]="state.profile.error" (retry)="retryProfile()" /> }
+        @case ('success') {
+          <div class="identity"><app-user-avatar [source]="state.profile.value.image" [name]="state.profile.value.firstName + ' ' + state.profile.value.lastName" />
+            <h3>{{ state.profile.value.firstName }} {{ state.profile.value.lastName }}</h3></div>
+          <p>Public user #{{ state.profile.value.id }} · only a name and avatar are displayed.</p>
+          <a mat-button routerLink="/tasks" [queryParams]="{ userId: state.profile.value.id }">View this user's tasks</a>
+        }
+      }
+    </section>
+    <section aria-labelledby="posts-heading" [attr.aria-busy]="state.posts.status === 'loading'">
+      <h2 id="posts-heading">Posts by this user</h2>
+      @switch (state.posts.status) {
+        @case ('loading') { <p role="status">Loading posts…</p><mat-progress-bar mode="indeterminate" aria-label="Loading posts" /> }
+        @case ('error') { <app-read-error section="posts" [error]="state.posts.error" (retry)="retryPosts()" /> }
+        @case ('success') {
+          <p role="status">{{ state.posts.value.total }} posts · {{ state.posts.value.items.length }} on this page · offset {{ state.posts.value.skip }}</p>
+          <ul>
+            @for (post of state.posts.value.items; track post.id) {
+              <li><h3><a [routerLink]="['/posts', post.id]">{{ post.title }}</a></h3><p class="body">{{ post.body }}</p></li>
+            } @empty {
+              <li><p>{{ pageIndex() > 0 ? 'No posts on this page.' : 'No posts yet.' }}</p></li>
+            }
+          </ul>
+          @if (pageIndex() > 0 && state.posts.value.items.length === 0) {
+            <button mat-button type="button" (click)="firstPage()">First posts page</button>
+          }
+          <mat-paginator [length]="state.posts.value.total" [pageIndex]="pageIndex()" [pageSize]="10"
+            hidePageSize showFirstLastButtons (page)="paginate($event)" aria-label="Profile post pages" />
+        }
+      }
+    </section>
+  </div>
+}
+<aside class="learning" aria-label="Profile learning guide">
+  <h2>Parallel reads, separate recovery</h2>
+  <p><strong>Concept:</strong> the profile and its posts are independent reads.</p>
+  <p><strong>Try it:</strong> open another user while requests are pending; retry a failed section without reloading the other.</p>
+  <p><strong>Angular mechanism:</strong> switchMap cancels the old route; combineLatest joins loading, success, and error states, not all-or-nothing results.</p>
+  <p><strong>Common mistake:</strong> waiting for the profile before requesting posts, or keeping the previous user's page.</p>
+  <p><strong>Revision prompt:</strong> why does each read catch its own error?</p>
+  <p><strong>Tasks:</strong> the public assignment link opens the task board with this user's filter, not a profile tab or authenticated identity.</p>
+</aside>

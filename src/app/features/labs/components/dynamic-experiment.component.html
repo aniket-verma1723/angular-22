@@ -1,0 +1,31 @@
+<app-component-experiment-card [lesson]="lesson">
+  <div class="controls">
+    <button type="button" (click)="create('note')">Create note</button>
+    <button type="button" (click)="create('meter')">Create meter</button>
+    <button type="button" (click)="revise()">Update widget input</button>
+    <button type="button" (click)="clear()">Clear widget</button>
+    <button type="button" (click)="switchImplementation()">Switch widget implementation</button>
+    <button type="button" (click)="inspect()">Read widget lifetime</button>
+  </div>
+  <p data-implementation>Implementation: {{ implementation() === 'container' ? 'ViewContainerRef.createComponent' : 'NgComponentOutlet' }}. Switching clears the current widget.</p>
+  @let current = kind();
+  @switch (current) {
+    @case ('empty') { <p data-kind>No widget created.</p> }
+    @case ('note')
+    @case ('meter') { <p data-kind>Active allowlisted widget: {{ current }}.</p> }
+    @default never(current);
+  }
+  @for (widget of widgets(); track widget.instance) {
+    @if (implementation() === 'container') {
+      <ng-container [appWidgetContainer]="widgetTypes[widget.kind]" [data]="data()" (selected)="selection.set($event)" />
+    } @else {
+      <ng-container [ngComponentOutlet]="widgetTypes[widget.kind]" [ngComponentOutletInputs]="outletInputs()" />
+    }
+  }
+  <p class="observation">Last explicit inspection — created: <strong data-created>{{ counts().created }}</strong>;
+    destroyed: <strong data-destroyed>{{ counts().destroyed }}</strong>.</p>
+  @let selected = selection();
+  @if (selected) {
+    <p data-selection>Selected {{ selected.kind }} revision {{ selected.revision }}</p>
+  } @else { <p data-selection>No selection yet.</p> }
+</app-component-experiment-card>

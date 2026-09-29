@@ -1,0 +1,51 @@
+<header><p>P09 · D01–D07</p><h1 tabindex="-1">Dependency injection workbench</h1><a routerLink="/labs">All labs</a></header>
+<section aria-labelledby="provider-heading">
+  <h2 id="provider-heading">Providers, configuration and ownership · D01/D02/D05/D06</h2>
+  <h3>Concept</h3><p>A token describes a dependency; its provider chooses a value or instance. This workbench owns an isolated environment injector.</p>
+  <h3>Try it</h3><p>Predict whether incrementing the alias also changes the original. Create, destroy, then recreate the experiment.</p>
+  <div class="actions">
+    <button type="button" (click)="start('success')">Create successful config</button>
+    <button type="button" (click)="start('failure')">Create failed config</button>
+    <button type="button" (click)="start('timeout')">Create stalled config</button>
+  </div>
+  @if (experiment(); as run) {
+    <p>useValue + useFactory: {{ run.summary }}</p>
+    <p>multi (registration order): {{ run.steps.join(', ') }}</p>
+    <p>useExisting identity: {{ run.counter === run.alias }}. useClass identity: {{ run.counter === run.separate }}.</p>
+    <p>Original {{ run.counter.count() }} · alias {{ run.alias.count() }} · separate {{ run.separate.count() }}</p>
+    <div class="actions">
+      <button type="button" [disabled]="run.counter.destroyed()" (click)="run.alias.increment()">Increment alias</button>
+      <button type="button" [disabled]="run.counter.destroyed()" (click)="run.separate.increment()">Increment separate class</button>
+      <button type="button" [disabled]="run.counter.destroyed()" (click)="probeContext()">Probe synchronous context and await</button>
+      <button type="button" [disabled]="run.counter.destroyed()" (click)="dispose()">Destroy owned injector</button>
+    </div>
+    <p role="status">Configuration: {{ run.config.state() }} · DestroyRef fired: {{ run.counter.destroyed() }}</p>
+  }
+  <p role="status">{{ context() }}</p>
+  <h3>What Angular does</h3><p>The environment initializer starts a local 150 ms configuration fixture; the 600 ms deadline and injector destruction end pending work. It is not an app bootstrap initializer. All rejection paths are handled. runInInjectionContext permits inject only on the synchronous stack; captured dependencies remain usable after await.</p>
+  <h3>Common mistake</h3><p>useClass does not alias an existing object. An environment injector is not automatically owned by the component that created it: this component explicitly destroys it on replacement and departure. Environment initializers do not await promises; application initializers do, and belong at bootstrap, not here.</p>
+  <h3>Revision question</h3><p>Why does the alias retain identity while the new class provider does not? What ends a stalled config?</p>
+  <p><strong>Test observation:</strong> specs check identity, deadline failure, replacement, handled NG0203, and destroyed-provider callbacks.</p>
+</section>
+<section aria-labelledby="scope-heading">
+  <h2 id="scope-heading">Element hierarchy and projection · D03/D04</h2>
+  <h3>Concept</h3><p>Element providers and environment providers form distinct hierarchies. Projection keeps the declaring view's visibility.</p>
+  <h3>Try it</h3><p>Compare the same probe in the panel view and in projected content. Increment either shared component counter, remove the panel and recreate it. Predict self + optional before inspecting null.</p>
+  <button type="button" (click)="toggleScopes()" [attr.aria-expanded]="scopes()" aria-controls="scope-results">{{ scopes() ? 'Remove' : 'Recreate' }} scope probes</button>
+  <div id="scope-results">
+    @if (scopes()) { <app-scope-panel><app-scope-probe label="Projected content child" /></app-scope-panel> }
+  </div>
+  <h3>What Angular does</h3><p>self finds child; skipSelf finds component. Both children share the panel counter, but only the panel's own view sees panel-view. The projected child sees parent-view. host stops at the declaring component's host boundary: the panel view cannot reach outer-only with host, while the projected child can. optional returns null rather than throwing. Removing the panel destroys its counter; recreation starts at zero.</p>
+  <h3>Common mistake</h3><p>viewProviders is not a security boundary. Root services normally outlive components; route providers are scoped to route configuration, not a promise of destruction on every navigation. Component providers are destroyed with their view.</p>
+  <h3>Revision question</h3><p>Why does moving content into ng-content not give it the panel's private view provider?</p>
+  <p><strong>Test observation:</strong> rendered probes assert actual self/skipSelf/host/optional values and projection visibility.</p>
+</section>
+<section aria-labelledby="async-heading">
+  <h2 id="async-heading">Async DI awareness · D07</h2>
+  <h3>Concept</h3><p>Installed Angular 22.1.7 declares injectAsync as public API 22.0, not experimental; it is an advanced lazy-service contract, not permission to call inject after await.</p>
+  <h3>Try it</h3><p>Run the context probe above, then compare its captured dependency with a lazy loader returning a promise.</p>
+  <h3>What Angular does</h3><p>injectAsync(loader, options?) returns a function returning Promise&lt;T&gt;. Lazy services must be auto-provided with Service or Injectable providedIn root. Here Injectable without a root scope makes ownership explicit. Constructor DI remains valid for legacy comparison; field inject captures the same dependency during construction.</p>
+  <h3>Common mistake</h3><p>Async DI is not an async injection context. No lazy-service runtime or prefetch is installed for this awareness-only exercise.</p>
+  <h3>Revision question</h3><p>Which function is created in the injection context and which function may be awaited later?</p>
+  <p><strong>Declaration/test reference:</strong> node_modules/&#64;angular/core/types/core.d.ts, injectAsync overloads near line 802; di-experiment.spec.ts contains a type-only contract assertion.</p>
+</section>

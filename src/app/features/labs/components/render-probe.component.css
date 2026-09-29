@@ -1,0 +1,3 @@
+.surface { box-sizing: border-box; width: 100%; border: 1px solid var(--mat-sys-outline, currentColor);
+  border-radius: .5rem; background: var(--mat-sys-surface, Canvas); }
+.surface.emphasized { border-style: dashed; }

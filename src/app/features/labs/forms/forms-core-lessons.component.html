@@ -1,0 +1,64 @@
+<section aria-labelledby="core-forms-lessons">
+  <h2 id="core-forms-lessons">Core forms practice — independent fixtures</h2>
+  <p>These tiny child-owned forms never copy or change the product-like draft above. Navigating away discards these exercises without an additional guard prompt. Nothing is sent or persisted.</p>
+
+  <h3>Trusted metadata, hidden, readonly and applyWhen</h3>
+  <p>A typed text-only allowlist generates labels, controls and required rules. No API JSON, HTML insertion or template compilation. Toggle details to apply a conditional schema; hiding keeps the value but excludes its validation.</p>
+  <form novalidate (submit)="rejectAlias($event)">
+    <label class="check"><input data-show-details type="checkbox" [formField]="metadataForm.showDetails"> Show and require details</label>
+    <label class="check"><input data-lock-code type="checkbox" [formField]="metadataForm.lockCode"> Make fixture code readonly</label>
+    <div class="grid">
+      @for (definition of textFields; track definition.key) {
+        @let field = metadataForm.fields[definition.key];
+        @if (!field().hidden()) {
+          <div>
+            <label>{{ field().metadata(fieldLabel)?.() }}
+              <input [type]="definition.kind" [attr.data-metadata-field]="definition.key" [formField]="field"
+                [attr.aria-invalid]="field().invalid()" [attr.aria-describedby]="'metadata-error-' + definition.key">
+            </label>
+            <p class="error" [id]="'metadata-error-' + definition.key">{{ field().touched() ? field().errors()[0]?.message : '' }}</p>
+          </div>
+        }
+      }
+    </div>
+    <button type="submit" [disabled]="!metadataForm().valid() || metadataForm().submitting()">Simulate field rejection</button>
+  </form>
+  <p role="status" data-metadata-state>Details hidden: {{ metadataForm.fields.details().hidden() }} · Code readonly: {{ metadataForm.fields.code().readonly() }} · Valid: {{ metadataForm().valid() }}</p>
+  <p>Submission returns a field-targeted validation error through Signal Forms submit(), not a generic save-failure banner. No network request occurs.</p>
+  <p role="status">{{ submissionNotice() }}</p>
+  <pre>{{ metadataDraft() | json }}</pre>
+
+  <h3>Compatibility in both directions (stable public APIs since Angular 22.0)</h3>
+  <p>From &#64;angular/forms/signals/compat: compatForm wraps existing Reactive controls for top-down migration. SignalFormControl contributes Signal validation to a Reactive FormGroup for bottom-up migration. Each input has exactly one binding.</p>
+  <fieldset>
+    <legend>Top-down: compatForm</legend>
+    <label>Signal-owned value <input data-compat-modern [formField]="compatibilityForm.modern" [attr.aria-invalid]="compatibilityForm.modern().invalid()" aria-describedby="compat-modern-error"></label>
+    <p id="compat-modern-error" class="error">{{ compatibilityForm.modern().touched() ? compatibilityForm.modern().errors()[0]?.message : '' }}</p>
+    <label>Adapted legacy value <input data-compat-legacy [formField]="compatibilityForm.legacy" [attr.aria-invalid]="compatibilityForm.legacy().invalid()" aria-describedby="compat-legacy-error"></label>
+    <p id="compat-legacy-error" class="error">@if (compatibilityForm.legacy().touched() && compatibilityForm.legacy().invalid()) { Enter the legacy fixture value. }</p>
+    <p data-compat-state>Reactive owner: {{ legacyControl.value }} · Adapted value: {{ compatibilityForm.legacy().value() }} · Valid: {{ compatibilityForm().valid() }}</p>
+  </fieldset>
+  <fieldset [formGroup]="bridgeForm">
+    <legend>Bottom-up: SignalFormControl inside FormGroup</legend>
+    <label>Migrated value <input data-bridge-migrated [formField]="migratedControl.fieldTree" [attr.aria-invalid]="migratedControl.fieldTree().invalid()" aria-describedby="bridge-error"></label>
+    <p id="bridge-error" class="error">{{ migratedControl.fieldTree().touched() ? migratedControl.fieldTree().errors()[0]?.message : '' }}</p>
+    <label>Retained Reactive value <input data-bridge-retained formControlName="retained"></label>
+    <p data-bridge-state>Reactive group status: {{ bridgeStatus() }} · Signal value: {{ migratedControl.fieldTree().value() }}</p>
+  </fieldset>
+
+  <h3>NonNullableFormBuilder: patchValue / setValue / reset</h3>
+  <p>Patch changes only supplied fields; set requires the complete typed shape. Neither clears touched/dirty state. Reset clears that state and restores non-nullable initial values.</p>
+  <fieldset [formGroup]="updatesForm">
+    <legend>Value operations fixture</legend>
+    <label>Practice label <input data-updates-label formControlName="label"></label>
+    <label>Practice category <input data-updates-category formControlName="category"></label>
+    <div class="actions">
+      <button type="button" (click)="patchPractice()">Patch practice label</button>
+      <button type="button" (click)="setPractice()">Set both practice values</button>
+      <button type="button" (click)="resetPractice()">Reset value practice</button>
+    </div>
+  </fieldset>
+  <pre>{{ updatesState() | json }}</pre>
+  <p data-updates-state>Practice dirty: {{ updatesForm.dirty }} · Practice touched: {{ updatesForm.touched }}</p>
+  <button type="button" (click)="resetLessons()" [disabled]="metadataForm().submitting()">Reset core lessons</button>
+</section>

@@ -1,0 +1,117 @@
+<header class="page-heading">
+  <p class="eyebrow">P08 · Observable laboratory</p>
+  <h1 tabindex="-1">RxJS operator lab</h1>
+  <p>Real RxJS operators, synthetic fixtures. All times are relative <strong>virtual milliseconds</strong>,
+    not wall-clock or network measurements. Nothing is sent or persisted.</p>
+</header>
+
+<section aria-labelledby="rxjs-concept">
+  <h2 id="rxjs-concept">Concept</h2>
+  <p>A subscription connects a producer to an observer. Next delivers a value; error or complete ends
+    observation. Unsubscribe stops observation without emitting complete. Finalize runs in all three cases.</p>
+</section>
+
+<section aria-labelledby="rxjs-try">
+  <h2 id="rxjs-try">Try it</h2>
+  <div class="controls">
+    <label for="rxjs-recipe">Recipe
+      <select id="rxjs-recipe" [value]="recipe()" (change)="chooseRecipe($event)"
+        [attr.aria-invalid]="invalid().has('recipe') ? 'true' : null" aria-describedby="rxjs-validation">
+        @for (item of recipes; track item.id) { <option [value]="item.id">{{ item.label }}</option> }
+      </select>
+    </label>
+    @if (recipe() === 'flattening') {
+      <label for="rxjs-clicks">Click scenario
+        <select id="rxjs-clicks" [value]="scenario().clicks" (change)="chooseClicks($event)"
+          [attr.aria-invalid]="invalid().has('clicks') ? 'true' : null" aria-describedby="rxjs-validation">
+          <option value="burst">Burst: A0 / B7 / C11 / D47 ms</option>
+          <option value="spaced">Spaced: A0 / B38 / C71 / D109 ms</option>
+        </select>
+      </label>
+      <label for="rxjs-strategy">Flattening strategy
+        <select id="rxjs-strategy" [value]="scenario().strategy" (change)="chooseStrategy($event)"
+          [attr.aria-invalid]="invalid().has('strategy') ? 'true' : null" aria-describedby="rxjs-validation">
+          @for (strategy of strategies; track strategy) {
+            <option [value]="strategy">{{ strategy }}{{ strategy === 'mergeMap' ? ' (concurrency 2)' : '' }}</option>
+          }
+        </select>
+      </label>
+      <label for="rxjs-error">Inner error
+        <select id="rxjs-error" [value]="scenario().error" (change)="chooseError($event)"
+          [attr.aria-invalid]="invalid().has('error') ? 'true' : null" aria-describedby="rxjs-validation">
+          @for (error of errors; track error) { <option [value]="error">{{ error === 'none' ? 'No inner error' : 'Fail operation ' + error }}</option> }
+        </select>
+      </label>
+      <label for="rxjs-teardown">Virtual navigation teardown
+        <select id="rxjs-teardown" [value]="scenario().teardown" (change)="chooseTeardown($event)"
+          [attr.aria-invalid]="invalid().has('teardown') ? 'true' : null" aria-describedby="rxjs-validation">
+          <option value="none">Let finite work finish</option>
+          <option value="early">Leave at 25 virtual ms</option>
+          <option value="late">Leave at 50 virtual ms</option>
+        </select>
+      </label>
+    }
+  </div>
+  <p id="rxjs-validation" role="alert">@if (invalid().size > 0) { Choose a listed option for each invalid control, or Reset. }</p>
+  @if (lesson(); as current) {
+    <aside class="prediction" aria-labelledby="rxjs-predict">
+      <h3 id="rxjs-predict">Predict before you run</h3>
+      <p>{{ current.prediction }}</p>
+    </aside>
+  }
+  <div class="actions">
+    <button type="button" (click)="run()" [disabled]="!canRun()">Run experiment</button>
+    <button type="button" (click)="reset()">Reset experiment</button>
+  </div>
+  <p role="status">{{ status() }}</p>
+</section>
+
+@if (lesson(); as current) {
+  <section aria-labelledby="rxjs-mechanism">
+    <h2 id="rxjs-mechanism">Angular and RxJS mechanism</h2>
+    <p>{{ current.mechanism }}</p>
+    @if (recipe() === 'flattening') {
+      @switch (scenario().strategy) {
+        @case ('switchMap') { <p>Selected policy: latest read wins. Revision: which inner must be cancelled when C arrives?</p> }
+        @case ('concatMap') { <p>Selected policy: serialize every admitted operation. Revision: how long does C wait behind A and B?</p> }
+        @case ('mergeMap') { <p>Selected policy: at most two active operations. Revision: why can B finish before A, and when can C subscribe?</p> }
+        @case ('exhaustMap') { <p>Selected policy: ignore duplicate triggers while busy. Revision: why are B and C neither queued nor subscribed?</p> }
+      }
+    }
+  </section>
+  <section aria-labelledby="rxjs-mistake">
+    <h2 id="rxjs-mistake">Common mistake</h2>
+    <p>{{ current.mistake }}</p>
+    @if (recipe() === 'flattening') {
+      @switch (scenario().strategy) {
+        @case ('switchMap') { <p>Do not use switchMap for writes that must all finish.</p> }
+        @case ('concatMap') { <p>concatMap has an unbounded internal queue; this experiment bounds admission to four clicks.</p> }
+        @case ('mergeMap') { <p>A concurrency limit does not preserve completion order or bound an unlimited outer queue.</p> }
+        @case ('exhaustMap') { <p>Ignored clicks are lost, not retried after the active operation finishes.</p> }
+      }
+    }
+  </section>
+  <section aria-labelledby="rxjs-revision">
+    <h2 id="rxjs-revision">Revision question</h2>
+    <p>{{ current.revision }}</p>
+  </section>
+}
+
+<section aria-labelledby="rxjs-observation">
+  <h2 id="rxjs-observation">Test observation</h2>
+  <p>At most {{ maxEvents }} events per run. IDs identify fixtures, subscribers or counters only.
+    Equal-time rows retain notification order. Queue/ignore entries reflect active subscriptions at a trigger;
+    drop means a queued operation never started.</p>
+  <p>The lab flushes synchronously and owns no ongoing real timers. Navigation here is a virtual takeUntil
+    experiment, not an Angular destruction test. The dashboard and task lifecycle specs exercise their real
+    owning views and downstream takeUntilDestroyed cleanup. Do not substitute a root service's lifetime for a page's.</p>
+  @let observation = state();
+  @if (observation.kind === 'complete') {
+    <ol class="timeline" aria-label="Chronological virtual-time event timeline">
+      @for (event of observation.events; track $index) {
+        <li><span class="time">+{{ event.atMs }} virtual ms</span> ·
+          <code>{{ event.operationId }}</code> · <strong>{{ event.kind }}</strong></li>
+      } @empty { <li>No events.</li> }
+    </ol>
+  }
+</section>

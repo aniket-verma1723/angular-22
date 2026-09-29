@@ -1,0 +1,16 @@
+<mat-card appearance="outlined" class="product-card">
+  <app-product-image [source]="product().thumbnail" [description]="product().title" [priority]="priority()" />
+  <mat-card-content>
+    <p class="eyebrow muted">{{ product().category }}</p><h2>{{ product().title }}</h2>
+    <p class="price">{{ product().price | currency:'USD' }}</p>
+    <p class="muted">Rating {{ product().rating | number:'1.1-1' }} / 5 ·
+      <span [appStockLevel]="product().stock">{{ product().stock === 0 ? 'Out of stock' : product().stock + ' in stock' }}</span></p>
+    <p class="muted">{{ inCart() }} in your session cart</p>
+  </mat-card-content>
+  <mat-card-actions>
+    <a mat-button [routerLink]="['/products', product().id]" [queryParams]="queryParams()"
+      [attr.aria-label]="'View details: ' + product().title">View details <span aria-hidden="true">→</span></a>
+    <button mat-flat-button type="button" [disabled]="!canAdd()" (click)="add.emit(product())"
+      [attr.aria-label]="'Add to cart: ' + product().title">{{ canAdd() ? 'Add to cart' : product().stock === 0 ? 'Out of stock' : 'Cart limit reached' }}</button>
+  </mat-card-actions>
+</mat-card>
