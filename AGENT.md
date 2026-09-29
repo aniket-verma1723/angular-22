@@ -16,13 +16,22 @@
 - Node.js 22.23.2 is a local development dependency. Use npm scripts so both Node and Angular CLI resolve locally; do not invoke global `ng` or download an unpinned CLI with `npx`.
 - Install with `npm.cmd ci` for the committed lockfile; use `npm.cmd install` when intentionally updating dependencies. Commit dependency and lockfile changes together.
 - Start: `npm.cmd start`. Production build: `npm.cmd run build`. Workspace CLI: `npm.cmd run ng -- <arguments>`.
+- Pages artifacts: `npm.cmd run build:pages` runs `ng build --configuration production --base-href /angular-22/ --stats-json`; then run `npm.cmd run audit:bundle` and `npm.cmd run test:pages`. The latter runs `node tools/deployment/pages-smoke.mjs` against existing artifacts with installed Chrome and its own strict loopback server; it is not a live deployment check. Normal `npm.cmd run build` retains the root base `/`.
 - Unit tests: `npm.cmd test -- --watch=false --browsers=ChromeHeadless`. Coverage when relevant: append `--code-coverage`.
 - On Windows PowerShell, use `npm.cmd` when forwarding arguments; the `npm.ps1` wrapper in this environment has dropped flags after `--`. On other platforms use `npm`.
-- Unit tests use Jasmine/Karma. P11 deliberately adds a curated Angular ESLint correctness baseline (`npm.cmd run lint`), strict browser-test checking (`npm.cmd run typecheck:e2e`), and Playwright with axe (`npm.cmd run e2e`, or `npm.cmd run e2e:a11y`). Prettier and CI are not configured; this is not a runner migration or full type-aware lint/security audit.
+- Unit tests use Jasmine/Karma. P11 deliberately adds a curated Angular ESLint correctness baseline (`npm.cmd run lint`), strict browser-test checking (`npm.cmd run typecheck:e2e`), and Playwright with axe (`npm.cmd run e2e`, or `npm.cmd run e2e:a11y`). CI now exists in `.github/workflows/pages.yml`; Prettier remains unconfigured. This is not a runner migration or full type-aware lint/security audit.
 - Browser tests use installed Chrome, one worker and a managed loopback mock server on port 4213, with external-request/page-error guards. Do not reuse an unknown server, download browsers or call live APIs incidentally. Generated `test-results` and `playwright-report` stay ignored.
 - Quality helper tests: `npm.cmd run test:quality`. After `npm.cmd run build -- --stats-json`, run `npm.cmd run audit:bundle` and `npm.cmd run measure:browser`. The latter serves only built production artifacts on an ephemeral loopback port and closes its own browser/server. Local timings and gzip estimates are not field Web Vitals or a security certification.
 - Respect `.editorconfig`: UTF-8, two spaces, final newline, single quotes in TypeScript. Preserve nearby formatting and semicolon style.
 - Keep strict TypeScript and Angular template checking enabled. Preserve `rootDir: "./src"`; do not suppress diagnostics to hide new errors.
+
+## Static Pages publishing
+
+- Preserve the authorized static client-build pipeline; it does not authorize or complete P13 SSR/hydration. See [current deployment/setup and smoke limits](README.md#hash-routing-and-github-pages-deployment); preserve historical milestone metrics.
+- `.github/workflows/pages.yml` gates push-to-main, PR-to-main and manual runs with lint, E2E types, 70 helper tests, units, mock-only E2E, production Pages stats build, bundle audit and artifact smoke. Keep Ubuntu 24.04, Node 22.23.2 and runner-installed Chrome; no incidental browser downloads.
+- Keep checkout v6, setup-node v6, configure-pages v6, upload-pages-artifact v4 and deploy-pages v5 SHA-pinned. Build has `contents: read`; deployment must depend on successful build, run only on `main` and never on PRs, and use `pages: write` / `id-token: write` with the `github-pages` environment.
+- Publish only audited `dist/angular-22/browser`. Never publish the `mock` configuration, `dist/angular-22-mock`, repository archives, credentials or test reports. Automated `GITHUB_TOKEN`/OIDC requires no PAT, added secret, `.env`, application environment variable or `gh-pages` branch.
+- The repository is private and Pages setup is pending: confirm plan eligibility and select Settings → Pages → Source: GitHub Actions once. Do not change repository visibility or claim the site is live without successful workflow/deployment verification.
 
 ## Angular architecture and organization
 
@@ -110,6 +119,8 @@
 ## Routing, forms, and HTTP
 
 - Define typed `Routes`, lazy-load with `loadComponent`/`loadChildren` where useful, and provide not-found/error flows. Use router APIs for internal navigation.
+- Preserve hash routing: browser links use `/#/route` locally and `/angular-22/#/route` for Pages; logical router URLs and validated return paths remain `/products`, not hash-prefixed. Router query parameters belong after the hash. Clean `/angular-22/products` requests are unsupported; do not introduce SPA fallback/`404.html` redirect hacks.
+- Resolve public assets relative to the document base, not origin-root `/asset` paths, so root and subpath builds work. Generate external/public app links through the router and location strategy rather than concatenating origin-root routes; retain URL allowlists and never copy private query/session data.
 - Prefer functional guards, resolvers, and interceptors. Return a redirect result from a guard instead of imperatively navigating and returning false.
 - Treat route guards as navigation UX, never as server-side authorization. Validate route/query parameters before use.
 - For new forms, prefer Angular 22's stable Signal Forms when appropriate. Typed Reactive Forms are a supported alternative; preserve existing form architecture rather than mixing systems casually.

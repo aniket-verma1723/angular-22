@@ -65,7 +65,7 @@ describe('Product catalogue', () => {
     expect(element().textContent).toContain('$0.00');
     expect(element().textContent).toContain('Out of stock');
     expect(element().textContent).toContain('Rating 0.0 / 5');
-    expect(element().querySelector('a[aria-label="View details: Test notebook"]')?.getAttribute('href')).toBe('/products/1');
+    expect(element().querySelector('a[aria-label="View details: Test notebook"]')?.getAttribute('href')).toBe('#/products/1');
     expect(element().querySelector('[aria-label="Product results"]')?.getAttribute('aria-busy')).toBe('false');
   });
 
@@ -132,7 +132,7 @@ describe('Product catalogue', () => {
     expect(sorted.request.params.get('sortBy')).toBe('price');
     sorted.flush(productPageFixture());
     harness.detectChanges();
-    expect(element().querySelector('a[aria-label^="View details"]')?.getAttribute('href')).toBe('/products/1?category=stationery&sort=price');
+    expect(element().querySelector('a[aria-label^="View details"]')?.getAttribute('href')).toBe('#/products/1?category=stationery&sort=price');
   });
 
   it('keeps category failure separate from successful product results and retries only categories', async () => {

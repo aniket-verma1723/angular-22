@@ -2,7 +2,7 @@ import { expect, test } from '../fixtures';
 
 // Behavioral checks only. The mock dev server cannot establish production chunk sizes or Web Vitals.
 test('signal defer renders once per mount and releases its instance on unmount', async ({ page }) => {
-  await page.goto('/labs/performance');
+  await page.goto('/#/labs/performance');
   await expect(page.getByRole('heading', { name: 'Performance lab', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Deferred trigger workbench', exact: true })).toBeVisible();
   await page.getByRole('combobox', { name: 'Deferred trigger', exact: true }).selectOption('when');

@@ -69,7 +69,7 @@ describe('Learning routes', () => {
 
   it('links and lazy-loads the local RxJS lab without public API requests', async () => {
     const harness = await RouterTestingHarness.create('/labs');
-    expect(harness.routeNativeElement?.querySelector('a[href="/labs/rxjs"]')).not.toBeNull();
+    expect(harness.routeNativeElement?.querySelector('a[href="#/labs/rxjs"]')).not.toBeNull();
     await harness.navigateByUrl('/labs/rxjs');
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('RxJS operator lab');
     expect(TestBed.inject(Title).getTitle()).toBe('RxJS operator lab | Angular 22 Learning Store');
@@ -81,7 +81,7 @@ describe('Learning routes', () => {
 
   it('links and lazy-loads P12 without HTTP or starting a timer on entry', async () => {
     const harness = await RouterTestingHarness.create('/labs');
-    expect(harness.routeNativeElement?.querySelector('a[href="/labs/zoneless"]')).not.toBeNull();
+    expect(harness.routeNativeElement?.querySelector('a[href="#/labs/zoneless"]')).not.toBeNull();
     await harness.navigateByUrl('/labs/zoneless');
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Zoneless notification lab');
     expect(harness.routeNativeElement?.querySelector('[data-testid="probe-status"]')?.textContent).toContain('Idle');
@@ -101,7 +101,7 @@ describe('Learning routes', () => {
   ]) {
     it(`links and lazy-loads P09 ${url} without startup HTTP`, async () => {
       const harness = await RouterTestingHarness.create('/labs');
-      expect(harness.routeNativeElement?.querySelector(`a[href="${url}"]`)).not.toBeNull();
+      expect(harness.routeNativeElement?.querySelector(`a[href="#${url}"]`)).not.toBeNull();
       await harness.navigateByUrl(url);
       expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe(heading);
       expect(TestBed.inject(Title).getTitle()).toContain('Angular 22 Learning Store');
@@ -118,7 +118,7 @@ describe('Learning routes', () => {
   ]) {
     it(`links and lazy-loads P10 ${url} without startup HTTP`, async () => {
       const harness = await RouterTestingHarness.create('/labs');
-      expect(harness.routeNativeElement?.querySelector(`a[href="${url}"]`)).not.toBeNull();
+      expect(harness.routeNativeElement?.querySelector(`a[href="#${url}"]`)).not.toBeNull();
       await harness.navigateByUrl(url);
       expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe(heading);
       expect(TestBed.inject(Title).getTitle()).toBe(`${heading} | Angular 22 Learning Store`);
@@ -141,7 +141,7 @@ describe('Learning routes', () => {
     it(`shows recovery for unmatched URL ${url}`, async () => {
       const harness = await RouterTestingHarness.create(url);
       expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Page not found');
-      expect(harness.routeNativeElement?.querySelector('a')?.getAttribute('href')).toBe('/dashboard');
+      expect(harness.routeNativeElement?.querySelector('a')?.getAttribute('href')).toBe('#/dashboard');
     });
   }
 

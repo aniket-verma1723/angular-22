@@ -1,17 +1,23 @@
-import { expect, test } from './fixtures';
+import { expect, hashRouteUrl, test } from './fixtures';
 
 test('user URL search restores and profile posts lead to comments and back to the author', async ({ page }) => {
-  await page.goto('/users');
+  await page.goto('/#/users');
   const search = page.getByRole('searchbox', { name: 'Search users', exact: true });
   await search.fill('Emily');
-  await expect(page).toHaveURL(url => url.pathname === '/users' && url.searchParams.get('q') === 'Emily');
+  await expect(page).toHaveURL(url => {
+    const route = hashRouteUrl(url);
+    return route.pathname === '/users' && route.searchParams.get('q') === 'Emily';
+  });
   const directoryURL = page.url();
   await page.reload();
   await expect(search).toHaveValue('Emily');
   const user = page.getByRole('table', { name: 'Public users', exact: true })
     .getByRole('link', { name: 'Emily Johnson', exact: true });
   await user.click();
-  await expect(page).toHaveURL(url => url.pathname === '/users/1' && url.searchParams.get('q') === 'Emily');
+  await expect(page).toHaveURL(url => {
+    const route = hashRouteUrl(url);
+    return route.pathname === '/users/1' && route.searchParams.get('q') === 'Emily';
+  });
   await expect(page.getByRole('region', { name: 'Public profile', exact: true }))
     .toContainText('Emily Johnson');
   await page.getByRole('link', { name: 'Back to users', exact: true }).click();
@@ -25,7 +31,7 @@ test('user URL search restores and profile posts lead to comments and back to th
   await expect(posts.getByRole('link', { name: "Emily's learning note 12", exact: true })).toBeVisible();
   await posts.getByRole('button', { name: 'Previous page', exact: true }).click();
   await posts.getByRole('link', { name: "Emily's learning note 1", exact: true }).click();
-  await expect(page).toHaveURL(url => url.pathname === '/posts/1');
+  await expect(page).toHaveURL(url => hashRouteUrl(url).pathname === '/posts/1');
   await expect(page.getByRole('region', { name: 'Post', exact: true }))
     .toContainText('A fictional practice note about learning together, written by Emily Johnson.');
   const comments = page.getByRole('region', { name: 'Comments', exact: true });
@@ -36,14 +42,14 @@ test('user URL search restores and profile posts lead to comments and back to th
   await expect(comments).toContainText('Practice comment 12: thanks for sharing this learning note.');
   await page.getByRole('region', { name: 'Author', exact: true })
     .getByRole('link', { name: 'Emily Johnson', exact: true }).click();
-  await expect(page).toHaveURL(url => url.pathname === '/users/1');
+  await expect(page).toHaveURL(url => hashRouteUrl(url).pathname === '/users/1');
   await expect(page.getByRole('heading', { name: 'Emily Johnson', exact: true })).toBeVisible();
   await expect(posts.getByRole('status').filter({ hasText: 'posts ·' })).toHaveText('12 posts · 10 on this page · offset 0');
 });
 
 test('product images have descriptive dimensions and recreate priority across sort reversals', async ({ page }) => {
   // Seeds 01–09 match this query; audit rendered attributes, not private Angular state.
-  await page.goto('/products?q=P02%20Mock%20Product%200&sort=title');
+  await page.goto('/#/products?q=P02%20Mock%20Product%200&sort=title');
   const results = page.getByRole('region', { name: 'Product results', exact: true });
   const images = results.locator('img');
   const audit = async (first: string): Promise<void> => {
@@ -72,7 +78,7 @@ test('product images have descriptive dimensions and recreate priority across so
     try {
       await page.getByRole('combobox', { name: 'Direction', exact: true }).press('Enter');
       await page.getByRole('option', { name: direction, exact: true }).click();
-      await expect(page).toHaveURL(url => (url.searchParams.get('order') ?? 'asc') === order);
+      await expect(page).toHaveURL(url => (hashRouteUrl(url).searchParams.get('order') ?? 'asc') === order);
       await audit(first);
       await expect.poll(() => previousPriority.evaluate(image => image.isConnected)).toBe(false);
     } finally {
@@ -89,7 +95,7 @@ test('failed local product images become named fallbacks without hiding product 
     if (route.request().url() === localImage) await route.abort('failed');
     else await route.fallback();
   });
-  await page.goto('/products?q=P02%20Mock%20Product%200&sort=title');
+  await page.goto('/#/products?q=P02%20Mock%20Product%200&sort=title');
   for (const title of ['P02 Mock Product 01', 'P02 Mock Product 09']) {
     const card = page.locator('app-product-card').filter({
       has: page.getByRole('heading', { name: title, exact: true })

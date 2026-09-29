@@ -36,7 +36,7 @@ describe('ImageLessonComponent', () => {
     const directive = fixture.debugElement.query(By.directive(NgOptimizedImage)).injector.get(NgOptimizedImage);
     expect(directive.fill).toBeTrue();
     expect(directive.priority).toBeFalse();
-    expect(image.getAttribute('src')).toBe('/mock-product.svg');
+    expect(image.getAttribute('src')).toBe('mock-product.svg');
     expect(image.alt).toBe('Purple fictional product cube on a pale background');
     expect(image.getAttribute('sizes')).toContain('(max-width: 600px) 80vw, 40vw');
     expect(image.getAttribute('loading')).toBe('lazy');
@@ -79,7 +79,7 @@ describe('ImageLessonComponent', () => {
     expect(before.width / before.height).toBeCloseTo(16 / 9, 2);
     click('Try unavailable local image');
     const image = element<HTMLImageElement>('img');
-    expect(image.getAttribute('src')).toBe('/mock-product-unavailable.svg');
+    expect(image.getAttribute('src')).toBe('mock-product-unavailable.svg');
     image.dispatchEvent(new Event('error'));
     fixture.detectChanges();
     const fallback = element('[role="img"]');
@@ -101,7 +101,7 @@ describe('ImageLessonComponent', () => {
     const frame = element('[data-image-frame]');
     click('Restore local image');
     const image = element<HTMLImageElement>('img');
-    expect(image.getAttribute('src')).toBe('/mock-product.svg');
+    expect(image.getAttribute('src')).toBe('mock-product.svg');
     expect(image.style.objectFit).toBe('cover');
     expect(element('[data-image-frame]')).toBe(frame);
     expect(root.querySelector('[role="img"]')).toBeNull();

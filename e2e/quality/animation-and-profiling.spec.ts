@@ -12,7 +12,7 @@ async function tabTo(page: Page, target: Locator): Promise<void> {
 }
 
 async function openLesson(page: Page): Promise<void> {
-  await page.goto('/labs/performance');
+  await page.goto('/#/labs/performance');
   await expect(page.getByRole('heading', { name: 'Performance lab', exact: true })).toBeFocused();
   // Remove unrelated deferred work through its public control before observing this lesson.
   await page.getByRole('button', { name: 'Unmount experiment', exact: true }).click();

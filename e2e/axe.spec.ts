@@ -69,7 +69,7 @@ for (const display of displays) {
 
     for (const route of routes) {
       test(`${route.name}: WCAG AA in its populated state`, async ({ page }, testInfo) => {
-        await page.goto(route.path);
+        await page.goto(`/#${route.path}`);
         await expect(page.getByRole('heading', { name: route.heading, level: 1, exact: true })).toBeVisible();
         await page.getByRole('combobox', { name: 'Theme', exact: true }).selectOption(display.theme);
         await expect(page.locator('html')).toHaveAttribute('data-theme', display.theme);

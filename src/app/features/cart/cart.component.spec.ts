@@ -12,7 +12,7 @@ describe('Cart page', () => {
   it('shows an empty recovery view without fetching products', async () => {
     const harness = await RouterTestingHarness.create('/cart');
     expect(harness.routeNativeElement?.textContent).toContain('Your cart is empty');
-    expect(harness.routeNativeElement?.querySelector('a')?.getAttribute('href')).toBe('/products');
+    expect(harness.routeNativeElement?.querySelector('a')?.getAttribute('href')).toBe('#/products');
     TestBed.inject(HttpTestingController).expectNone(() => true);
   });
 

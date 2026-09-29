@@ -39,7 +39,8 @@ export class UtilitiesExperimentComponent {
   protected readonly focusOrigin = this.focusState.asReadonly();
   protected readonly copyResult = this.copyState.asReadonly();
   protected readonly note = this.noteState.asReadonly();
-  protected readonly link = publicProductLink(this.document.location?.origin ?? '');
+  protected readonly link = publicProductLink(this.document.location?.origin ?? '',
+    this.document.querySelector('base')?.getAttribute('href') ?? '/');
   protected readonly narrowViewport = toSignal(
     inject(BreakpointObserver).observe('(max-width: 600px)').pipe(map(state => state.matches)),
     { initialValue: false }

@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, hashRouteUrl, test } from './fixtures';
 
 async function expectRenderedRow(row: Locator): Promise<void> {
   await expect.poll(() => row.evaluate(element => {
@@ -28,13 +28,13 @@ async function signInWithPublicMock(page: Page, admin = false): Promise<void> {
 }
 
 test('catalogue search, sort and page survive detail navigation and reload', async ({ page }) => {
-  await page.goto('/products?sort=price&order=desc');
+  await page.goto('/#/products?sort=price&order=desc');
   await page.getByRole('searchbox', { name: 'Search products', exact: true }).fill('P02 Mock Product');
-  await expect(page).toHaveURL(url => url.searchParams.get('q') === 'P02 Mock Product');
+  await expect(page).toHaveURL(url => hashRouteUrl(url).searchParams.get('q') === 'P02 Mock Product');
   const results = page.getByRole('region', { name: 'Product results', exact: true });
   await expect(results).toContainText('30 products found · 12 on this page');
   await page.getByRole('button', { name: 'Next page', exact: true }).click();
-  await expect(page).toHaveURL(url => url.searchParams.get('page') === '2');
+  await expect(page).toHaveURL(url => hashRouteUrl(url).searchParams.get('page') === '2');
   await expect(results.getByRole('heading', { level: 2 }).first()).toHaveText('P02 Mock Product 18');
   const sharedURL = page.url();
   await page.getByRole('link', { name: 'View details: P02 Mock Product 18', exact: true }).click();
@@ -50,13 +50,16 @@ test('catalogue search, sort and page survive detail navigation and reload', asy
 });
 
 test('guest cart redirects to public mock login and creates a user 2 receipt', async ({ page }) => {
-  await page.goto('/products/2');
+  await page.goto('/#/products/2');
   await expect(page.getByRole('heading', { name: 'P02 Mock Product 02', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
   await expect(page.getByRole('link', { name: 'Cart, 1 items', exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'View cart', exact: true }).click();
   await page.getByRole('link', { name: 'Practice checkout', exact: true }).click();
-  await expect(page).toHaveURL(url => url.pathname === '/login' && url.searchParams.get('returnUrl') === '/checkout');
+  await expect(page).toHaveURL(url => {
+    const route = hashRouteUrl(url);
+    return route.pathname === '/login' && route.searchParams.get('returnUrl') === '/checkout';
+  });
   await signInWithPublicMock(page);
   await expect(page.getByRole('heading', { name: 'Checkout', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Use fictional sample', exact: true }).click();
@@ -74,7 +77,7 @@ test('guest cart redirects to public mock login and creates a user 2 receipt', a
 });
 
 test('demo-admin creates, reads, updates and deletes a product; Escape preserves a dirty draft', async ({ page }) => {
-  await page.goto('/products/new');
+  await page.goto('/#/products/new');
   await signInWithPublicMock(page, true);
   const title = 'P11 browser practice notebook';
   await page.getByRole('textbox', { name: 'Title', exact: true }).fill(title);
@@ -106,12 +109,12 @@ test('demo-admin creates, reads, updates and deletes a product; Escape preserves
   await expect(page.getByRole('heading', { name: 'Deleted from this mock session', exact: true })).toBeVisible();
   await back.click();
   await page.getByRole('searchbox', { name: 'Search products', exact: true }).fill(title);
-  await expect(page).toHaveURL(url => url.searchParams.get('q') === title);
+  await expect(page).toHaveURL(url => hashRouteUrl(url).searchParams.get('q') === title);
   await expect(page.getByRole('heading', { name: 'No products found', exact: true })).toBeVisible();
 });
 
 test('task native keyboard move and completion persist appropriately; dirty navigation is guarded', async ({ page }) => {
-  await page.goto('/tasks');
+  await page.goto('/#/tasks');
   const open = page.locator('#task-list-OPEN');
   const task = page.locator('[data-task-id="1"]');
   await expect(open.locator('[data-task-id]').first()).toHaveAttribute('data-task-id', '1');
@@ -135,11 +138,11 @@ test('task native keyboard move and completion persist appropriately; dirty navi
   await expect(page.getByRole('textbox', { name: 'Task text', exact: true })).toHaveValue('Keep this unsaved fictional task');
   await dashboard.click();
   await dialog.getByRole('button', { name: 'Discard draft', exact: true }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/#\/dashboard$/);
 });
 
 test('dashboard remains idle until Load and exposes complete grouped mock totals', async ({ page }) => {
-  await page.goto('/dashboard');
+  await page.goto('/#/dashboard');
   await expect(page.getByText('Widgets idle. No data requested.', { exact: true })).toBeVisible();
   await expect(page.getByText('Not loaded. Select Load widgets to request data.', { exact: true })).toHaveCount(3);
   await page.getByRole('combobox', { name: 'Request strategy', exact: true }).selectOption('forkJoin');
@@ -156,7 +159,7 @@ test('dashboard remains idle until Load and exposes complete grouped mock totals
 });
 
 test('CDK portal traps keyboard focus and virtual rows keep selection by stable ID', async ({ page }) => {
-  await page.goto('/labs/cdk');
+  await page.goto('/#/labs/cdk');
   const trigger = page.getByRole('button', { name: 'Open portal help', exact: true });
   await trigger.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Portal help', exact: true });

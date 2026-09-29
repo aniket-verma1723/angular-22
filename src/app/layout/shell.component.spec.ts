@@ -63,7 +63,7 @@ describe('ShellComponent', () => {
     const fixture = TestBed.createComponent(ShellComponent);
     fixture.autoDetectChanges(); await fixture.whenStable();
     const element: HTMLElement = fixture.nativeElement;
-    const link = element.querySelector('header a[href="/cart"]');
+    const link = element.querySelector('header a[href="#/cart"]');
     expect(link?.getAttribute('aria-label')).toBe('Cart, 0 items');
     const cart = TestBed.inject(CartService);
     cart.add(productFixture({ stock: 3 }), 2); await fixture.whenStable();
@@ -248,8 +248,8 @@ describe('ShellComponent', () => {
     await fixture.whenStable();
     expect(document.activeElement).toBe(menu);
     const element: HTMLElement = fixture.nativeElement;
-    const cart = element.querySelector<HTMLAnchorElement>('header a[href="/cart"]');
-    const session = element.querySelector<HTMLAnchorElement>('header a[href="/login"]');
+    const cart = element.querySelector<HTMLAnchorElement>('header a[href="#/cart"]');
+    const session = element.querySelector<HTMLAnchorElement>('header a[href="#/login"]');
     if (!cart || !session) throw new Error('Missing toolbar links');
     for (const link of [cart, session]) {
       expect(link.tabIndex).toBe(0);

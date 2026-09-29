@@ -9,7 +9,7 @@ for (const display of [
     test.use({ viewport: { width: display.width, height: 900 }, colorScheme: display.theme });
 
     test('native callbacks refresh both notification modes without a second interaction', async ({ page }) => {
-      await page.goto('/labs');
+      await page.goto('/#/labs');
       await page.getByRole('link', { name: 'Open zoneless lab', exact: true }).click();
       await expect(page.getByRole('heading', { name: 'Zoneless notification lab', exact: true })).toBeVisible();
       await page.getByRole('combobox', { name: 'Theme', exact: true }).selectOption(display.theme);
@@ -33,7 +33,7 @@ for (const display of [
 }
 
 test('cancel and navigation destroy pending work; a fresh lab starts idle', async ({ page }) => {
-  await page.goto('/labs/zoneless');
+  await page.goto('/#/labs/zoneless');
   await page.clock.install();
   await page.getByRole('button', { name: 'Arm callback', exact: true }).click();
   await page.getByRole('button', { name: 'Cancel callback', exact: true }).click();
@@ -52,7 +52,7 @@ test('cancel and navigation destroy pending work; a fresh lab starts idle', asyn
 
 test('the session expiry timer refreshes the visible sign-in state without user input', async ({ page }) => {
   await page.clock.install();
-  await page.goto('/login');
+  await page.goto('/#/login');
   await page.getByRole('button', { name: 'Fill public demo values', exact: true }).click();
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Session summary', exact: true })).toBeVisible();
@@ -64,7 +64,7 @@ test('the session expiry timer refreshes the visible sign-in state without user 
 
 for (const variant of ['rxjs', 'httpResource', 'rxResource', 'resource']) {
   test(`${variant} publishes success, error and recovery without Zone.js`, async ({ page }) => {
-    await page.goto('/labs/resources');
+    await page.goto('/#/labs/resources');
     await page.getByRole('combobox', { name: 'Read variant', exact: true }).selectOption(variant);
     const id = page.getByRole('textbox', { name: 'Product ID', exact: true });
     await id.fill('1');

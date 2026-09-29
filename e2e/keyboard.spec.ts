@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, hashRouteUrl, test } from './fixtures';
 
 /** Real Tab traversal only: never substitute locator.focus() or a pointer action. */
 async function tabTo(target: Locator): Promise<void> {
@@ -47,12 +47,12 @@ async function publicMockLogin(page: Page, admin = false): Promise<void> {
 
 test('Tab-only catalogue → cart → public mock login → sample checkout → receipt', async ({ page }, testInfo) => {
   // Only the initial route is direct navigation; every subsequent action uses the keyboard.
-  await page.goto('/products');
+  await page.goto('/#/products');
   await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toBeFocused();
   const search = page.getByRole('searchbox', { name: 'Search products', exact: true });
   await tabTo(search);
   await page.keyboard.type('P02 Mock Product 02');
-  await expect(page).toHaveURL(url => url.searchParams.get('q') === 'P02 Mock Product 02');
+  await expect(page).toHaveURL(url => hashRouteUrl(url).searchParams.get('q') === 'P02 Mock Product 02');
   const details = page.getByRole('link', { name: 'View details: P02 Mock Product 02', exact: true });
   await tabTo(details);
   await expect(details).toBeFocused();
@@ -75,7 +75,10 @@ test('Tab-only catalogue → cart → public mock login → sample checkout → 
   await expect(page.getByRole('link', { name: 'Cart, 1 items', exact: true })).toBeVisible();
   await activate(page.getByRole('link', { name: 'View cart', exact: true }));
   await activate(page.getByRole('link', { name: 'Practice checkout', exact: true }));
-  await expect(page).toHaveURL(url => url.pathname === '/login' && url.searchParams.get('returnUrl') === '/checkout');
+  await expect(page).toHaveURL(url => {
+    const route = hashRouteUrl(url);
+    return route.pathname === '/login' && route.searchParams.get('returnUrl') === '/checkout';
+  });
   await publicMockLogin(page);
   await expect(page.getByRole('heading', { name: 'Checkout', exact: true })).toBeFocused();
   await activate(page.getByRole('button', { name: 'Use fictional sample', exact: true }));
@@ -97,7 +100,7 @@ test('Tab-only catalogue → cart → public mock login → sample checkout → 
 });
 
 test('keyboard editor dirty-cancel traps focus, preserves the draft, and restores the initiating link', async ({ page }) => {
-  await page.goto('/products/new');
+  await page.goto('/#/products/new');
   await publicMockLogin(page, true);
   await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toBeFocused();
   const title = page.getByRole('textbox', { name: 'Title', exact: true });
@@ -117,7 +120,7 @@ test('keyboard editor dirty-cancel traps focus, preserves the draft, and restore
   await expect(dialog).toHaveCount(0);
   await expect(back).toBeFocused();
   await expect(title).toHaveValue(draft);
-  await expect(page).toHaveURL(/\/products\/new$/);
+  await expect(page).toHaveURL(/\/#\/products\/new$/);
   await page.keyboard.press('Enter');
   await expect(keep).toBeFocused();
   await page.keyboard.press('Enter');

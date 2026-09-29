@@ -53,8 +53,8 @@ describe('Public post detail UI', () => {
     http.expectNone(req => req.url === `${base}/posts/11`);
     flushAuthor(); await harness.fixture.whenStable();
     expect(element().textContent).toContain('A public learning post');
-    expect(element().querySelector('a[href="/users/1"]')?.textContent).toContain('Ada Reader');
-    expect(element().querySelector('a[href="/users/2"]')?.textContent).toContain('Grace Reader');
+    expect(element().querySelector('a[href="#/users/1"]')?.textContent).toContain('Ada Reader');
+    expect(element().querySelector('a[href="#/users/2"]')?.textContent).toContain('Grace Reader');
   });
 
   it('preserves post/comments after author failure and retries only the author', async () => {
@@ -95,7 +95,7 @@ describe('Public post detail UI', () => {
     flushAuthor(2);
     http.expectNone(req => req.url.endsWith('/comments'));
     await harness.fixture.whenStable();
-    expect(element().querySelector('section[aria-labelledby="author-heading"] a')?.getAttribute('href')).toBe('/users/2');
+    expect(element().querySelector('section[aria-labelledby="author-heading"] a')?.getAttribute('href')).toBe('#/users/2');
   });
 
   for (const section of ['author', 'comments'] as const) {
@@ -219,7 +219,7 @@ describe('Public post detail UI', () => {
 
     nextAuthor.flush(userUiFixture({ id: 3, firstName: 'New author' }));
     await harness.fixture.whenStable();
-    expect(element().querySelector('section[aria-labelledby="author-heading"] a')?.getAttribute('href')).toBe('/users/3');
+    expect(element().querySelector('section[aria-labelledby="author-heading"] a')?.getAttribute('href')).toBe('#/users/3');
     expect(element().textContent).toContain('New author Reader');
     expect(element().textContent).toContain('New post only');
     expect(element().textContent).toContain('New comment only');

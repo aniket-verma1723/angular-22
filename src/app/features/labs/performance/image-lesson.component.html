@@ -47,8 +47,10 @@
   <p>Why does cover crop a 4:3 image in a 16:9 frame? Which element reserves space before loading
     and after failure, and why is this image not priority?</p>
   <h3>Test observation</h3>
-  <p>Only <code>/mock-product.svg</code> and the deliberately missing
-    <code>/mock-product-unavailable.svg</code> are requested, never an external image.
+  <p>Only <code>mock-product.svg</code> and the deliberately missing
+    <code>mock-product-unavailable.svg</code> are requested, never an external image.
+    These base-relative paths resolve against the document base: <code>/</code> in development
+    or <code>/angular-22/</code> on Pages, independently of the hash route.
     Compare frame geometry before load, after contain/cover, failure and restore at narrow width.
     These checks are not field CLS or image-CDN measurements.</p>
 </section>

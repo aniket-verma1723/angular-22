@@ -13,7 +13,7 @@ for (const display of displays) {
     test.use({ viewport: { width: display.width, height: 900 }, colorScheme: display.theme });
 
     test('keeps the workspace summary readable beside or above later milestones', async ({ page }) => {
-      await page.goto('/dashboard');
+      await page.goto('/#/dashboard');
       await page.getByRole('combobox', { name: 'Theme', exact: true }).selectOption(display.theme);
       await expectStableApp(page);
 
@@ -49,7 +49,7 @@ for (const display of displays) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await expect(page.getByText('Widgets idle. No data requested.', { exact: true })).toBeVisible();
       await expect(foundation.getByRole('link', { name: 'Open performance lab', exact: true }))
-        .toHaveAttribute('href', '/labs/performance');
+        .toHaveAttribute('href', '#/labs/performance');
     });
   });
 }

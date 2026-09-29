@@ -6,6 +6,8 @@
     "start": "ng serve",
     "start:mock": "ng serve --configuration mock",
     "build": "ng build",
+    "build:pages": "ng build --configuration production --base-href /angular-22/ --stats-json",
+    "test:pages": "node tools/deployment/pages-smoke.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "eslint src e2e playwright.config.ts --max-warnings=0",

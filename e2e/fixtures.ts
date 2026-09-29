@@ -80,6 +80,11 @@ test.afterEach(async ({ browserSafety, page }, testInfo) => {
   }
 });
 
+/** Read Angular's path/query from the fragment, not the physical document URL. */
+export function hashRouteUrl(url: URL): URL {
+  return new URL(url.hash.slice(1), url.origin);
+}
+
 /** Wait for observable layout and finite Material/CSS animations, not network idle. */
 export async function expectStableApp(page: Page): Promise<void> {
   const main = page.getByRole('main');

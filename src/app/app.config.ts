@@ -1,6 +1,6 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import type { ApplicationConfig } from '@angular/core';
-import { provideRouter, withComponentInputBinding, withInMemoryScrolling, withPreloading } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withHashLocation, withInMemoryScrolling, withPreloading } from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideAppData } from './core/config/app-data.providers';
@@ -10,7 +10,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideAppData(),
-    provideRouter(routes, withComponentInputBinding(), withPreloading(PerformancePreloadingStrategy), withInMemoryScrolling({
+    provideRouter(routes, withHashLocation(), withComponentInputBinding(), withPreloading(PerformancePreloadingStrategy), withInMemoryScrolling({
       scrollPositionRestoration: 'enabled',
       anchorScrolling: 'enabled'
     }))

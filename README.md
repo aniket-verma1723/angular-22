@@ -16,6 +16,27 @@ Run `npm install` to install dependencies (or `npm ci` for a clean install from 
 
 Use `npm run ng -- version` to check the workspace versions. On Windows PowerShell, use `npm.cmd` instead of `npm` when forwarding arguments after `--` if your npm wrapper drops them. Avoid invoking the global `ng` command directly.
 
+## Hash routing and GitHub Pages deployment
+
+**Current deployment scope:** authorized hash routing and a static client-build Pages pipeline, **not P13 SSR/hydration**. The learning milestone/status revision above and P00–P12 records remain unchanged; historical “no CI” statements describe their original scope.
+
+All browser links use `/#/route` locally, for example `http://localhost:4200/#/dashboard` and `http://localhost:4200/#/products?page=2`. Logical Angular router URLs remain `/products`; route notation elsewhere in this README (including historical records) denotes those logical paths, not unhashed address-bar links. Router queries stay **after the hash**. Clean deployed paths such as `/angular-22/products` are unsupported: there is no SPA fallback or `404.html` redirect hack.
+
+**Setup pending:** the repository is **private** and GitHub Pages is currently **not enabled**. Confirm that the owner's GitHub plan permits Pages for private repositories, then an administrator must select **Settings → Pages → Build and deployment → Source: GitHub Actions** once. Use the existing workflow, not another template. This does not make the repository public; published browser assets must nevertheless be treated as public. Only after a successful `main` workflow deployment and site verification should `https://aniket-verma1723.github.io/angular-22/#/dashboard` be treated as the deployed address—**no live-site success is claimed yet**.
+
+| Command | Purpose |
+| --- | --- |
+| `npm.cmd run build` | Unchanged normal production build with root base `/` |
+| `npm.cmd run build:pages` | `ng build --configuration production --base-href /angular-22/ --stats-json` |
+| `npm.cmd run audit:bundle` | Audit the production output and matching stats |
+| `npm.cmd run test:pages` | `node tools/deployment/pages-smoke.mjs`; run after `build:pages`, with installed Chrome |
+
+The [Pages workflow](.github/workflows/pages.yml) runs on pushes to `main`, PRs targeting `main`, and manual dispatch. Its Ubuntu 24.04 build uses Node **22.23.2** and runner-installed Chrome; gates are lint, strict E2E types, **70 quality-helper tests**, units, mock-only E2E, production Pages build/stats, bundle audit and static-artifact smoke. Actions are SHA-pinned: checkout **v6**, setup-node **v6**, configure-pages **v6**, upload-pages-artifact **v4**, deploy-pages **v5**. Build permissions are `contents: read`; deploy requires successful `build`, grants `pages: write` / `id-token: write`, and uses the `github-pages` environment. Upload/deploy run only on `main`, never on PRs. Only `dist/angular-22/browser` is published—not mock output or a repository archive. Automated `GITHUB_TOKEN`/OIDC needs no PAT, added secret, `.env`, new application environment variable or `gh-pages` branch.
+
+The [smoke helper](tools/deployment/pages-smoke.mjs) audits existing artifacts, reads a safe non-root base from built HTML, and owns a strict ephemeral loopback static server plus Chrome, closing both afterward. Assertions cover idle dashboard/root redirect, a queried hash deep link/reload/history, selected lazy lab chunks, a subpath public image, generated product-link text, Angular not-found recovery, no Zone/API/external requests/page errors, and an unhashed deep route returning HTTP 404. It does **not** test live Pages, every route/data journey, clipboard copying, or plan eligibility; it accepts a safe non-root base rather than independently requiring `/angular-22/` (the build script selects that prefix).
+
+**Supplied completed checks so far, not rerun by this documentation edit:** lint and E2E types passed; **1808/1808 units PASS (28.576 s)**; workflow YAML parsed. Final helper/E2E/build/audit/smoke and deployment evidence remain for the main verification pass; no unfinished check is recorded as passing.
+
 ## Development server
 
 To start a local development server, run:
@@ -24,7 +45,7 @@ To start a local development server, run:
 npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Once the server is running, open your browser and navigate to `http://localhost:4200/#/dashboard`. The application will automatically reload whenever you modify any of the source files.
 
 ## Data modes (P02)
 
@@ -315,7 +336,7 @@ The following scripts are configured; listing them is not a claim that this docu
 | `npm.cmd run audit:bundle` | Audit production bundle boundaries and size estimates |
 | `npm.cmd run measure:browser` | Measure built production artifacts; default two profiles in installed Chrome |
 
-Playwright uses **installed Chrome**, one worker and its managed **loopback mock server on port 4213**, never an unknown reused server. Fixtures assert no global Zone, block external requests and check page errors; generated `test-results/` and `playwright-report/` stay ignored. **Never deploy the mock build.** The production measurement helper instead serves built artifacts on an **ephemeral loopback port**, uses fresh contexts and cleans up its own browser/server. Neither workflow needs browser downloads, live API/auth calls or deployment. CI and Prettier remain unconfigured.
+Playwright uses **installed Chrome**, one worker and its managed **loopback mock server on port 4213**, never an unknown reused server. Fixtures assert no global Zone, block external requests and check page errors; generated `test-results/` and `playwright-report/` stay ignored. **Never deploy the mock build.** The production measurement helper instead serves built artifacts on an **ephemeral loopback port**, uses fresh contexts and cleans up its own browser/server. Neither local verification flow needs browser downloads, live API/auth calls or deployment. CI is now configured in the [Pages pipeline](#hash-routing-and-github-pages-deployment); Prettier remains unconfigured.
 
 **Historical verification records (P07–P09):** the following observations, diagnostics and then-pending statements describe those milestones, not P10 sign-off. Their original claims remain unchanged.
 

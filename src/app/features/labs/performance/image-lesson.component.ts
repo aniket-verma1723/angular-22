@@ -1,8 +1,8 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component, computed, linkedSignal, signal } from '@angular/core';
 
-const LOCAL_IMAGE = '/mock-product.svg';
-const UNAVAILABLE_IMAGE = '/mock-product-unavailable.svg';
+const LOCAL_IMAGE = 'mock-product.svg';
+const UNAVAILABLE_IMAGE = 'mock-product-unavailable.svg';
 type ImageStatus = 'loading' | 'ready' | 'failed';
 
 @Component({

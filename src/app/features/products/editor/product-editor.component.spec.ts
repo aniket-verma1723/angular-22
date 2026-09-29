@@ -73,7 +73,7 @@ describe('Product Signal Forms editor', () => {
     expect(request.request.body).toEqual(productDraftFixture());
     request.flush({ ...productDraftFixture(), id: 301 }); await settle();
     expect(harness.routeNativeElement?.textContent).toContain('Simulated save only');
-    expect(harness.routeNativeElement?.querySelector('a[href="/products/301"]')).toBeNull();
+    expect(harness.routeNativeElement?.querySelector('a[href="#/products/301"]')).toBeNull();
     expect(await (await button('Save product')).isDisabled()).toBeTrue();
     expect(harness.routeNativeElement?.textContent).toContain('No unsaved field changes');
     await (await button('Create another product')).click();
@@ -193,7 +193,7 @@ describe('Product Signal Forms editor', () => {
     establishSessionFixture(TestBed.inject(SessionStore));
     await open('/products/1/edit'); await fill(); send();
     http.expectOne(`${base}/1`).flush({ ...productDraftFixture(), id: 1 }); await settle();
-    expect(harness.routeNativeElement?.querySelector('a[href="/products/1"]')).not.toBeNull();
+    expect(harness.routeNativeElement?.querySelector('a[href="#/products/1"]')).not.toBeNull();
     expect(cart.lines()[0].unitPriceCents).toBe(1250);
     expect(cart.lines()[0].title).toBe('Test notebook');
   });

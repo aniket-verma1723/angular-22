@@ -78,7 +78,7 @@ describe('PerformanceLabComponent (manual defer states)', () => {
     expect(root.textContent).toContain('JavaScript module is cached');
     expect(root.querySelectorAll('app-image-lesson').length).toBe(1);
     const image = element<HTMLImageElement>('app-image-lesson img');
-    expect(image.getAttribute('src')).toBe('/mock-product.svg');
+    expect(image.getAttribute('src')).toBe('mock-product.svg');
     expect(image.getAttribute('loading')).toBe('lazy');
     expect(image.getAttribute('fetchpriority')).not.toBe('high');
     expect(image.hasAttribute('width')).toBeFalse();

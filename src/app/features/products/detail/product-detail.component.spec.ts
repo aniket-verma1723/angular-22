@@ -37,7 +37,7 @@ describe('Product detail', () => {
     expect(harness.routeNativeElement?.textContent).toContain('Test notebook');
     expect(harness.routeNativeElement?.textContent).toContain('Demo reviewer');
     expect(harness.routeNativeElement?.textContent).toContain('Useful');
-    expect(harness.routeNativeElement?.querySelector('a')?.getAttribute('href')).toBe('/products?q=notebook&page=2&sort=price');
+    expect(harness.routeNativeElement?.querySelector('a')?.getAttribute('href')).toBe('#/products?q=notebook&page=2&sort=price');
     expect(harness.routeNativeElement?.querySelector('img')?.alt).toContain('Test notebook');
   });
 

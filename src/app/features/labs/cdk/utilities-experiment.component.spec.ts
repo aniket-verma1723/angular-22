@@ -57,7 +57,8 @@ describe('UtilitiesExperimentComponent', () => {
     const copy = labButton(root, 'Copy public product link');
     copy.click();
     await fixture.whenStable();
-    const expected = new URL('/products/1', document.location.origin).href;
+    const base = new URL(document.querySelector('base')?.getAttribute('href') ?? '/', document.location.origin);
+    const expected = new URL('#/products/1', base).href;
     expect(clipboard.copy).toHaveBeenCalledOnceWith(expected);
     const link = labElement<HTMLInputElement>(root, '#cdk-public-link');
     expect(link.readOnly).toBeTrue();

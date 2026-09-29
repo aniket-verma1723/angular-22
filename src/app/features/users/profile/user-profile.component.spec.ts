@@ -45,11 +45,11 @@ describe('Public user profile UI', () => {
     posts.flush(postUiPage()); harness.detectChanges();
     expect(element().textContent).toContain('A public learning post');
     expect(element().textContent).toContain('Loading profile');
-    expect(element().querySelector('a[href="/posts/11"]')).not.toBeNull();
+    expect(element().querySelector('a[href="#/posts/11"]')).not.toBeNull();
     profile.flush(userUiFixture()); await harness.fixture.whenStable();
     expect(element().textContent).toContain('Ada Reader');
     expect(element().textContent).toContain('1 posts · 1 on this page · offset 0');
-    expect(element().querySelector('a[href="/tasks?userId=1"]')?.textContent).toContain("View this user's tasks");
+    expect(element().querySelector('a[href="#/tasks?userId=1"]')?.textContent).toContain("View this user's tasks");
     expect(element().querySelector('[role="tab"]')).toBeNull();
   });
 
@@ -177,7 +177,7 @@ describe('Public user profile UI', () => {
     http.expectNone(() => true);
     profile.flush({ ...userUiFixture({ firstName: '<img src=x onerror=alert(1)>' }), email: 'private@example.test', address: { city: 'Private city' } });
     posts.flush(postUiPage()); await harness.fixture.whenStable();
-    expect(element().querySelector('a')?.getAttribute('href')).toBe('/users?q=Ada&page=2&pageSize=25');
+    expect(element().querySelector('a')?.getAttribute('href')).toBe('#/users?q=Ada&page=2&pageSize=25');
     expect(element().textContent).toContain('<img src=x onerror=alert(1)>');
     expect(element().querySelector('img[src="x"]')).toBeNull();
     expect(element().textContent).not.toContain('private@example.test');

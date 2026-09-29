@@ -4,7 +4,7 @@ import { expect, expectStableApp, test } from '../fixtures';
 // Real public triggers, not Angular testing/debug APIs. HMR/cache can affect downloads:
 // these assertions establish rendering behavior, not production splitting or Web Vitals.
 async function openLab(page: Page): Promise<void> {
-  await page.goto('/labs/performance');
+  await page.goto('/#/labs/performance');
   await expect(page.getByRole('heading', { name: 'Performance lab', exact: true })).toBeVisible();
   await expectStableApp(page);
 }
@@ -210,7 +210,7 @@ for (const display of [
       expect(before.width / before.height).toBeCloseTo(16 / 9, 2);
       await expect(lesson.locator('[data-image-frame]')).toHaveCSS('position', 'relative');
       await expect(image).toHaveCSS('position', 'absolute');
-      await expect(image).toHaveAttribute('src', '/mock-product.svg');
+      await expect(image).toHaveAttribute('src', 'mock-product.svg');
       await expect(image).toHaveAttribute('alt', 'Purple fictional product cube on a pale background');
       await expect(image).toHaveAttribute('sizes', /\(max-width: 600px\) 80vw, 40vw$/);
       await expect(image).toHaveAttribute('loading', 'lazy');
@@ -259,7 +259,7 @@ for (const display of [
     await lesson.getByRole('button', { name: 'Restore local image', exact: true }).press('Enter');
     await expectDecoded();
     await expect(fallback).toHaveCount(0);
-    await expect(image).toHaveAttribute('src', '/mock-product.svg');
+    await expect(image).toHaveAttribute('src', 'mock-product.svg');
     await expect(image).toHaveCSS('object-fit', 'cover');
     await expectGeometry(lesson, before);
     await crop.press('Space');

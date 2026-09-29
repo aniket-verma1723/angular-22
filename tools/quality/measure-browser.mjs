@@ -31,12 +31,7 @@ function staticServer(root) {
           path.split('/').some(part => part === '..' || /[. ]$/.test(part))) return end(403);
       let target = resolve(root, `.${path === '/' ? '/index.html' : path}`);
       if (!inside(root, target)) return end(403);
-      try { target = await realpath(target); }
-      catch (error) {
-        if (error.code !== 'ENOENT') throw error;
-        if (extname(path)) return end(404);
-        target = await realpath(resolve(root, 'index.html')); // Extensionless SPA route only.
-      }
+      target = await realpath(target); // Missing paths return 404; hash routes only request '/'.
       if (!inside(root, target)) return end(403);
       if (!(await stat(target)).isFile()) return end(404);
       const body = await readFile(target);
@@ -132,7 +127,7 @@ async function visit(browser, origin, profile, chunks, exercise) {
 }
 async function measure(browser, origin, profile, chunks) {
   const dashboard = await visit(browser, origin, profile, chunks, async ({ page, count }) => {
-    await page.goto(`${origin}/dashboard`);
+    await page.goto(`${origin}/#/dashboard`);
     await check(page.getByRole('heading', { level: 1 })).toContainText('Understand Angular.');
     const sample = await observations(page, chunks);
     for (const name of Object.keys(chunks)) assert.equal(count(name), 0, `Dashboard requested ${name}`);
@@ -153,7 +148,7 @@ async function measure(browser, origin, profile, chunks) {
       await check(observation).toContainText(expected);
       return (await observation.innerText()).replace(/\s+/g, ' ').trim();
     };
-    await fetchWith('preloaded', () => page.goto(`${origin}/labs/performance`));
+    await fetchWith('preloaded', () => page.goto(`${origin}/#/labs/performance`));
     await check(heading('Performance lab')).toBeVisible();
     await check(summary).toHaveCount(0);
     await check(heading('Preload candidate route lesson')).toHaveCount(0);
