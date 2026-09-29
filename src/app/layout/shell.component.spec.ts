@@ -140,13 +140,22 @@ describe('ShellComponent', () => {
     const fixture = TestBed.createComponent(ShellComponent);
     fixture.autoDetectChanges(); await fixture.whenStable();
     const loader = TestbedHarnessEnvironment.loader(fixture);
+    const sidenav = fixture.debugElement.query(By.directive(MatSidenav)).injector.get(MatSidenav);
+    const opened = firstValueFrom(sidenav.openedChange.pipe(filter(value => value)));
     await clickMenu(fixture);
+    await opened; await fixture.whenStable();
+    // Zoneless stability does not wait for Material's asynchronous close event.
+    // The shell schedules heading focus from that event, after drawer restoration.
+    const closed = firstValueFrom(sidenav.openedChange.pipe(filter(value => !value)));
     await TestBed.inject(Router).navigateByUrl('/products');
+    await closed;
     await fixture.whenStable();
     expect(await (await loader.getHarness(MatSidenavHarness)).isOpen()).toBeFalse();
     const element: HTMLElement = fixture.nativeElement;
     expect(element.querySelector('nav[aria-label="Learning modules"] a[aria-current="page"]')?.textContent).toContain('Products');
-    expect(document.activeElement?.tagName).toBe('H1');
+    const heading = element.querySelector('main h1');
+    expect(heading).not.toBeNull();
+    expect(document.activeElement).toBe(heading);
   });
 
   it('closes mobile navigation when selecting the current route again', async () => {
